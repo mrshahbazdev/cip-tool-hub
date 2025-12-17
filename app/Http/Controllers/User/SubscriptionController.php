@@ -316,23 +316,37 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Sync existing subscription to create tenant (for manual fix)
+     * Sync existing subscription to create tenant
      */
     public function syncTenant(Request $request, Subscription $subscription): RedirectResponse
     {
-        $this->authorize('view', $subscription);
+        if ($subscription->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized access');
+        }
 
         if ($subscription->tenant_id && $subscription->is_tenant_active) {
             return back()->with('info', 'Tenant already exists and is active.');
         }
 
+        // Validate password input
+        $request->validate([
+            'password' => ['required', 'string', 'min:8'],
+        ]);
+
         try {
             DB::beginTransaction();
 
-            // Default password
-            $plainPassword = 'Welcome@2025';
+            // Get password from request (user must provide it)
+            $plainPassword = $request->password;
+            
+            // Verify password matches user's current password
+            if (!Hash::check($plainPassword, auth()->user()->password)) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'The provided password does not match your current password.');
+            }
 
-            // Create tenant
+            // Create tenant with user's actual password
             $tenantData = $this->createTenantOnToolServer($subscription, $plainPassword);
 
             DB::commit();
@@ -340,11 +354,12 @@ class SubscriptionController extends Controller
             Log::info('Tenant synced for existing subscription', [
                 'subscription_id' => $subscription->id,
                 'tenant_id' => $tenantData['tenant_id'],
+                'user_id' => auth()->id(),
             ]);
 
             return redirect()
                 ->route('user.subscriptions.show', $subscription)
-                ->with('success', 'Tenant created successfully!')
+                ->with('success', 'Tenant created successfully! You can now login with your current password.')
                 ->with('tenant_credentials', $tenantData);
 
         } catch (\Exception $e) {
@@ -352,12 +367,15 @@ class SubscriptionController extends Controller
 
             Log::error('Tenant sync failed', [
                 'subscription_id' => $subscription->id,
+                'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
             ]);
 
             return back()->with('error', 'Failed to create tenant: ' . $e->getMessage());
         }
     }
+
+        /**
 
     /**
      * Calculate expiry date based on package duration
