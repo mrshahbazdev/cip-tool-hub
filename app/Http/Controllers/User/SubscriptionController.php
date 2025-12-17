@@ -147,11 +147,11 @@ class SubscriptionController extends Controller
             if ($paymentStatus === 'completed') {
                 try {
                     // Get user's plain password from session (set during registration)
-                    $plainPassword = session('temp_user_password');
+                    $plainPassword = $request->password;
                     
                     // If no password in session, use default and log warning
                     if (!$plainPassword) {
-                        $plainPassword = 'Welcome@2025';
+                        $plainPassword = $request->password;
                         Log::warning('No temp password in session, using default', [
                             'user_id' => $user->id,
                             'subscription_id' => $subscription->id,
