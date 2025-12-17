@@ -5,8 +5,8 @@ namespace App\Filament\Resources\Users\Schemas;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;  // ← Add this
+use Filament\Forms\Components\Grid;     // ← Add this
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -136,7 +136,7 @@ class UserForm
                                 if ($activeTenants > 0) {
                                     $html .= "<div class='p-3 bg-green-50 border border-green-200 rounded-lg'>";
                                     $html .= "✅ <strong>PASSWORD SYNC ACTIVE</strong><br>";
-                                    $html .= "<span class='text-sm'>When you change this user's password, it will automatically sync to <strong>{$activeTenants} active tenant database(s)</strong>.</span>";
+                                    $html .= "<span class='text-sm'>Password hash will automatically sync to <strong>{$activeTenants} active tenant(s)</strong>.</span>";
                                     $html .= "</div>";
                                     
                                     // List active tenants
@@ -159,28 +159,8 @@ class UserForm
                                     $html .= "</div>";
                                 } else if ($active > 0) {
                                     $html .= "<div class='p-3 bg-yellow-50 border border-yellow-200 rounded-lg'>";
-                                    $html .= "⚠️ <strong>Active subscriptions found but no active tenants.</strong><br>";
-                                    $html .= "<span class='text-sm'>Subscriptions may need to be synced to create tenants.</span>";
+                                    $html .= "⚠️ <strong>Active subscriptions found but no active tenants.</strong>";
                                     $html .= "</div>";
-                                    
-                                    // List subscriptions without tenants
-                                    $subsWithoutTenants = $subscriptions->where('status', 'active')
-                                        ->whereNull('tenant_id');
-                                    
-                                    if ($subsWithoutTenants->count() > 0) {
-                                        $html .= "<div class='space-y-2'>";
-                                        $html .= "<strong class='text-sm'>Subscriptions needing tenant setup:</strong>";
-                                        $html .= "<ul class='space-y-1 ml-4'>";
-                                        foreach ($subsWithoutTenants as $sub) {
-                                            $toolName = $sub->package->tool->name ?? 'Unknown Tool';
-                                            $html .= "<li class='text-sm flex items-center gap-2'>";
-                                            $html .= "<span class='w-2 h-2 bg-yellow-500 rounded-full'></span>";
-                                            $html .= "{$sub->subdomain} ({$toolName}) - <em>Needs sync</em>";
-                                            $html .= "</li>";
-                                        }
-                                        $html .= "</ul>";
-                                        $html .= "</div>";
-                                    }
                                 } else {
                                     $html .= "<div class='p-3 bg-gray-50 border border-gray-200 rounded-lg'>";
                                     $html .= "ℹ️ No active tenants. Password will only be updated in main platform.";
@@ -226,7 +206,7 @@ class UserForm
     }
 
     /**
-     * Sync password to all active tenants
+     * Sync password hash to all active tenants
      */
     protected static function syncPasswordToTenants(User $user, string $plainPassword): void
     {
@@ -243,17 +223,20 @@ class UserForm
                 return;
             }
 
-            Log::info('Starting password sync to tenants', [
+            Log::info('Starting password hash sync to tenants', [
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'tenant_count' => $subscriptions->count(),
             ]);
 
+            // Hash the new password
+            $hashedPassword = Hash::make($plainPassword);
+
             foreach ($subscriptions as $subscription) {
                 try {
                     $tool = $subscription->package->tool;
 
-                    // Make API request to update password
+                    // Make API request to update password with hash
                     $response = Http::timeout(10)
                         ->withHeaders([
                             'Authorization' => 'Bearer ' . $tool->api_token,
@@ -261,16 +244,16 @@ class UserForm
                         ])
                         ->post($tool->api_url . '/api/tenants/' . $subscription->tenant_id . '/update-password', [
                             'email' => $user->email,
-                            'password' => $plainPassword,
+                            'password_hash' => $hashedPassword, // Send hashed password
                         ]);
 
                     if ($response->successful()) {
-                        Log::info('Password synced to tenant', [
+                        Log::info('Password hash synced to tenant', [
                             'tenant_id' => $subscription->tenant_id,
                             'subdomain' => $subscription->subdomain,
                         ]);
                     } else {
-                        Log::error('Failed to sync password to tenant', [
+                        Log::error('Failed to sync password hash to tenant', [
                             'tenant_id' => $subscription->tenant_id,
                             'status' => $response->status(),
                             'response' => $response->body(),
@@ -278,20 +261,20 @@ class UserForm
                     }
 
                 } catch (\Exception $e) {
-                    Log::error('Exception syncing password to tenant', [
+                    Log::error('Exception syncing password hash to tenant', [
                         'tenant_id' => $subscription->tenant_id,
                         'error' => $e->getMessage(),
                     ]);
                 }
             }
 
-            Log::info('Password sync completed', [
+            Log::info('Password hash sync completed', [
                 'user_id' => $user->id,
                 'synced_count' => $subscriptions->count(),
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Password sync failed', [
+            Log::error('Password hash sync failed', [
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
