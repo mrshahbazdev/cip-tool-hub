@@ -143,30 +143,21 @@ class SubscriptionController extends Controller
                 'admin_email' => $user->email,
             ]);
 
-            // Auto-activate for free packages or manual payment
+            // Auto-activate for free packages - FIX IS HERE
             if ($paymentStatus === 'completed') {
                 try {
-                    // Get user's plain password from session (set during registration)
-                    $plainPassword = session('temp_user_password');
+                    Log::info('Creating tenant for free subscription', [
+                        'user_id' => $user->id,
+                        'subscription_id' => $subscription->id,
+                        'subdomain' => $subdomain,
+                    ]);
                     
-                    // If no password in session, use default and log warning
-                    if (!$plainPassword) {
-                        $plainPassword = 'Welcome@2025';
-                        Log::warning('No temp password in session, using default', [
-                            'user_id' => $user->id,
-                            'subscription_id' => $subscription->id,
-                        ]);
-                    }
-                    
-                    // Create tenant on tool server
-                    $tenantData = $this->createTenantOnToolServer($subscription, $plainPassword);
-                    
-                    // Clear password from session after use
-                    session()->forget('temp_user_password');
+                    // Create tenant on tool server - NO PASSWORD NEEDED
+                    $tenantData = $this->createTenantOnToolServer($subscription);
                     
                     DB::commit();
                     
-                    Log::info('Subscription created successfully', [
+                    Log::info('Subscription and tenant created successfully', [
                         'subscription_id' => $subscription->id,
                         'tenant_id' => $tenantData['tenant_id'] ?? null,
                         'subdomain' => $subscription->subdomain,
@@ -174,7 +165,7 @@ class SubscriptionController extends Controller
                     
                     return redirect()
                         ->route('user.subscriptions.success', $subscription)
-                        ->with('success', 'Subscription activated successfully!')
+                        ->with('success', 'Subscription activated successfully! Login with your main platform credentials.')
                         ->with('tenant_credentials', $tenantData);
                         
                 } catch (\Exception $e) {
@@ -219,11 +210,10 @@ class SubscriptionController extends Controller
                 ->with('error', 'Failed to create subscription: ' . $e->getMessage());
         }
     }
-
     /**
      * Create tenant on tool server via API
      */
-    private function createTenantOnToolServer(Subscription $subscription, string $plainPassword): array
+    private function createTenantOnToolServer(Subscription $subscription): array
     {
         $tool = $subscription->package->tool;
         $user = $subscription->user;
@@ -240,6 +230,9 @@ class SubscriptionController extends Controller
         // Generate tenant ID
         $tenantId = 'tenant_' . Str::uuid();
 
+        // Get hashed password directly from user database
+        $hashedPassword = $user->password;
+
         // Prepare API request data
         $requestData = [
             'tenant_id' => $tenantId,
@@ -248,17 +241,17 @@ class SubscriptionController extends Controller
             'user_id' => $user->id,
             'admin_name' => $user->name,
             'admin_email' => $user->email,
-            'admin_password' => $user->password, // Send plain password to CRM
+            'admin_password_hash' => $hashedPassword, // Send hashed password
             'package_name' => $subscription->package->name,
             'starts_at' => $subscription->starts_at->toIso8601String(),
             'expires_at' => $subscription->expires_at?->toIso8601String(),
         ];
 
-        Log::info('Creating tenant via API', [
+        Log::info('Creating tenant via API with hashed password', [
             'tool_url' => $tool->api_url,
             'tenant_id' => $tenantId,
             'subdomain' => $subscription->subdomain,
-            'password' => $user->password,
+            'admin_email' => $user->email,
         ]);
 
         // Make API request
@@ -274,10 +267,10 @@ class SubscriptionController extends Controller
             Log::error('Tenant creation API failed', [
                 'status' => $response->status(),
                 'response' => $response->body(),
-                'request_data' => $requestData,
+                'request_data' => array_except($requestData, ['admin_password_hash']),
             ]);
             
-            throw new \Exception('API request failed with status ' . $response->status() . ': ' . $response->body());
+            throw new \Exception('API request failed with status ' . $response->status());
         }
 
         $responseData = $response->json();
@@ -286,7 +279,7 @@ class SubscriptionController extends Controller
             throw new \Exception($responseData['message'] ?? 'Unknown error from tool server');
         }
 
-        // Update subscription with tenant info - THIS IS THE KEY FIX
+        // ⚠️ IMPORTANT: Update subscription with tenant info
         $subscription->update([
             'tenant_id' => $tenantId,
             'is_tenant_active' => true,
@@ -303,7 +296,7 @@ class SubscriptionController extends Controller
         // Build login URL
         $baseDomain = config('app.base_domain', 'ideenpipeline.de');
         $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
-                   '/tenant/' . $tenantId . '/login';
+                '/tenant/' . $tenantId . '/login';
 
         return [
             'tenant_id' => $tenantId,
@@ -311,8 +304,8 @@ class SubscriptionController extends Controller
             'subdomain' => $subscription->subdomain,
             'domain' => $subscription->subdomain . '.' . $baseDomain,
             'admin_email' => $user->email,
-            'admin_password' => $plainPassword,
             'message' => 'Use same email and password as your main account',
+            'success' => true,
         ];
     }
 
