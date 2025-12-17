@@ -239,7 +239,7 @@ class SubscriptionController extends Controller
 
         // Generate tenant ID
         $tenantId = 'tenant_' . Str::uuid();
-
+        $hashedPassword = $user->password;
         // Prepare API request data
         $requestData = [
             'tenant_id' => $tenantId,
@@ -248,7 +248,7 @@ class SubscriptionController extends Controller
             'user_id' => $user->id,
             'admin_name' => $user->name,
             'admin_email' => $user->email,
-            'admin_password' => $plainPassword, // Send plain password to CRM
+            'admin_password' => $hashedPassword,
             'package_name' => $subscription->package->name,
             'starts_at' => $subscription->starts_at->toIso8601String(),
             'expires_at' => $subscription->expires_at?->toIso8601String(),
