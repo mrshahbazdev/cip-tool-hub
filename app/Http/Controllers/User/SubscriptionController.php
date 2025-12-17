@@ -268,7 +268,7 @@ class SubscriptionController extends Controller
             Log::error('Tenant creation API failed', [
                 'status' => $response->status(),
                 'response' => $response->body(),
-                'request_data' => array_except($requestData, ['admin_password_hash']),
+                'request_data' => Arr::except($requestData, ['admin_password_hash']),
             ]);
             
             throw new \Exception('API request failed with status ' . $response->status());
