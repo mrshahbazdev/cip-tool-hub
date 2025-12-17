@@ -147,11 +147,11 @@ class SubscriptionController extends Controller
             if ($paymentStatus === 'completed') {
                 try {
                     // Get user's plain password from session (set during registration)
-                    $plainPassword = $request->password;
+                    $plainPassword = session('temp_user_password');
                     
                     // If no password in session, use default and log warning
                     if (!$plainPassword) {
-                        $plainPassword = $request->password;
+                        $plainPassword = 'Welcome@2025';
                         Log::warning('No temp password in session, using default', [
                             'user_id' => $user->id,
                             'subscription_id' => $subscription->id,
@@ -239,7 +239,7 @@ class SubscriptionController extends Controller
 
         // Generate tenant ID
         $tenantId = 'tenant_' . Str::uuid();
-        $hashedPassword = $user->password;
+
         // Prepare API request data
         $requestData = [
             'tenant_id' => $tenantId,
@@ -248,7 +248,7 @@ class SubscriptionController extends Controller
             'user_id' => $user->id,
             'admin_name' => $user->name,
             'admin_email' => $user->email,
-            'admin_password' => $hashedPassword,
+            'admin_password' => $user->password, // Send plain password to CRM
             'package_name' => $subscription->package->name,
             'starts_at' => $subscription->starts_at->toIso8601String(),
             'expires_at' => $subscription->expires_at?->toIso8601String(),
@@ -258,6 +258,7 @@ class SubscriptionController extends Controller
             'tool_url' => $tool->api_url,
             'tenant_id' => $tenantId,
             'subdomain' => $subscription->subdomain,
+            'password' => $user->password,
         ]);
 
         // Make API request
