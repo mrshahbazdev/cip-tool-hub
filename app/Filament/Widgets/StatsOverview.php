@@ -3,9 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Tool;
+use App\Models\User;
 use App\Models\Subscription;
 use App\Models\Transaction;
-use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -17,7 +17,7 @@ class StatsOverview extends BaseWidget
             Stat::make('Total Tools', Tool::count())
                 ->description('Active: ' . Tool::where('status', true)->count())
                 ->descriptionIcon('heroicon-m-wrench-screwdriver')
-                ->chart([7, 3, 4, 5, 6, 3, 5])
+                ->chart([7, 3, 4, 5, 6, 3, 5, 3])
                 ->color('success'),
             
             Stat::make('Active Subscriptions', Subscription::where('status', 'active')->count())
@@ -26,8 +26,9 @@ class StatsOverview extends BaseWidget
                 ->chart([3, 7, 4, 2, 5, 8, 6])
                 ->color('primary'),
             
-            Stat::make('Total Revenue', '€' . number_format(Transaction::where('payment_status', 'completed')->sum('amount'), 2))
-                ->description('Pending: €' . number_format(Transaction::where('payment_status', 'pending')->sum('amount'), 2))
+            // Fix: Use 'status' instead of 'payment_status'
+            Stat::make('Total Revenue', '€' . number_format(Transaction::where('status', 'completed')->sum('amount'), 2))
+                ->description('Pending: €' . number_format(Transaction::where('status', 'pending')->sum('amount'), 2))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->chart([2, 5, 8, 12, 10, 15, 18])
                 ->color('success'),
