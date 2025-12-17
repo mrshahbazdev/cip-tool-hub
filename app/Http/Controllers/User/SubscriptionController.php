@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Support\Arr;
 
 class SubscriptionController extends Controller
 {
