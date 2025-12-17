@@ -145,7 +145,16 @@ class SubscriptionController extends Controller
             if ($paymentStatus === 'completed') {
                 try {
                     // Get user's plain password from session (set during registration)
-                    $plainPassword = session('temp_user_password', 'Welcome@2025');
+                    $plainPassword = session('temp_user_password');
+                    
+                    // If no password in session, use default and log warning
+                    if (!$plainPassword) {
+                        $plainPassword = 'Welcome@2025';
+                        Log::warning('No temp password in session, using default', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id,
+                        ]);
+                    }
                     
                     // Create tenant on tool server
                     $tenantData = $this->createTenantOnToolServer($subscription, $plainPassword);
@@ -158,6 +167,7 @@ class SubscriptionController extends Controller
                     Log::info('Subscription created successfully', [
                         'subscription_id' => $subscription->id,
                         'tenant_id' => $tenantData['tenant_id'] ?? null,
+                        'subdomain' => $subscription->subdomain,
                     ]);
                     
                     return redirect()
@@ -170,6 +180,8 @@ class SubscriptionController extends Controller
                     
                     Log::error('Tenant creation failed', [
                         'subscription_id' => $subscription->id ?? null,
+                        'user_id' => $user->id,
+                        'subdomain' => $subdomain,
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
                     ]);
@@ -247,60 +259,101 @@ class SubscriptionController extends Controller
         ]);
 
         // Make API request
-        try {
-            $response = Http::timeout(30)
-                ->withHeaders([
-                    'Authorization' => 'Bearer ' . $tool->api_token,
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ])
-                ->post($tool->api_url . '/api/tenants/create', $requestData);
+        $response = Http::timeout(30)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $tool->api_token,
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])
+            ->post($tool->api_url . '/api/tenants/create', $requestData);
 
-            if (!$response->successful()) {
-                Log::error('Tenant creation API failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body(),
-                ]);
-                
-                throw new \Exception('API request failed: ' . $response->body());
-            }
-
-            $responseData = $response->json();
-
-            if (!($responseData['success'] ?? false)) {
-                throw new \Exception($responseData['message'] ?? 'Unknown error from tool server');
-            }
-
-            // Update subscription with tenant info
-            $subscription->update([
-                'tenant_id' => $tenantId,
-                'is_tenant_active' => true,
-                'tenant_created_at' => now(),
-                'tenant_metadata' => $responseData,
-            ]);
-
-            // Build login URL
-            $baseDomain = config('app.base_domain', 'ideenpipeline.de');
-            $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
-                       '/tenant/' . $tenantId . '/login';
-
-            return [
-                'tenant_id' => $tenantId,
-                'tenant_url' => $loginUrl,
-                'subdomain' => $subscription->subdomain,
-                'domain' => $subscription->subdomain . '.' . $baseDomain,
-                'admin_email' => $user->email,
-                'admin_password' => $plainPassword,
-                'message' => 'Use same email and password as your main account',
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('Tenant creation exception', [
-                'error' => $e->getMessage(),
-                'tool_url' => $tool->api_url,
+        if (!$response->successful()) {
+            Log::error('Tenant creation API failed', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+                'request_data' => $requestData,
             ]);
             
-            throw new \Exception('Failed to create tenant: ' . $e->getMessage());
+            throw new \Exception('API request failed with status ' . $response->status() . ': ' . $response->body());
+        }
+
+        $responseData = $response->json();
+
+        if (!($responseData['success'] ?? false)) {
+            throw new \Exception($responseData['message'] ?? 'Unknown error from tool server');
+        }
+
+        // Update subscription with tenant info - THIS IS THE KEY FIX
+        $subscription->update([
+            'tenant_id' => $tenantId,
+            'is_tenant_active' => true,
+            'tenant_created_at' => now(),
+            'tenant_metadata' => $responseData,
+        ]);
+
+        Log::info('Subscription updated with tenant info', [
+            'subscription_id' => $subscription->id,
+            'tenant_id' => $tenantId,
+            'is_tenant_active' => true,
+        ]);
+
+        // Build login URL
+        $baseDomain = config('app.base_domain', 'ideenpipeline.de');
+        $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
+                   '/tenant/' . $tenantId . '/login';
+
+        return [
+            'tenant_id' => $tenantId,
+            'tenant_url' => $loginUrl,
+            'subdomain' => $subscription->subdomain,
+            'domain' => $subscription->subdomain . '.' . $baseDomain,
+            'admin_email' => $user->email,
+            'admin_password' => $plainPassword,
+            'message' => 'Use same email and password as your main account',
+        ];
+    }
+
+    /**
+     * Sync existing subscription to create tenant (for manual fix)
+     */
+    public function syncTenant(Request $request, Subscription $subscription): RedirectResponse
+    {
+        $this->authorize('view', $subscription);
+
+        if ($subscription->tenant_id && $subscription->is_tenant_active) {
+            return back()->with('info', 'Tenant already exists and is active.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Default password
+            $plainPassword = 'Welcome@2025';
+
+            // Create tenant
+            $tenantData = $this->createTenantOnToolServer($subscription, $plainPassword);
+
+            DB::commit();
+
+            Log::info('Tenant synced for existing subscription', [
+                'subscription_id' => $subscription->id,
+                'tenant_id' => $tenantData['tenant_id'],
+            ]);
+
+            return redirect()
+                ->route('user.subscriptions.show', $subscription)
+                ->with('success', 'Tenant created successfully!')
+                ->with('tenant_credentials', $tenantData);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Tenant sync failed', [
+                'subscription_id' => $subscription->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Failed to create tenant: ' . $e->getMessage());
         }
     }
 
@@ -395,7 +448,8 @@ class SubscriptionController extends Controller
         // Get tenant credentials from session if available
         $tenantCredentials = session('tenant_credentials');
 
-        // Or build login URL from subscription
+        // Build login URL from subscription
+        $loginUrl = null;
         if ($subscription->tenant_id) {
             $baseDomain = config('app.base_domain', 'ideenpipeline.de');
             $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
@@ -442,7 +496,7 @@ class SubscriptionController extends Controller
                 'is_tenant_active' => false,
             ]);
 
-            // Optionally notify tool server to deactivate tenant
+            // Notify tool server to deactivate tenant
             if ($subscription->tenant_id) {
                 $tool = $subscription->package->tool;
                 
