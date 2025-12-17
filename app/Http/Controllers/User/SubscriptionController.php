@@ -144,51 +144,63 @@ class SubscriptionController extends Controller
                 'admin_email' => $user->email,
             ]);
 
-            // Auto-activate for free packages - FIX IS HERE
+            Log::info('Subscription created', [
+                'subscription_id' => $subscription->id,
+                'user_id' => $user->id,
+                'subdomain' => $subdomain,
+                'payment_status' => $paymentStatus,
+            ]);
+
+            // Auto-activate for free packages
             if ($paymentStatus === 'completed') {
                 try {
                     Log::info('Creating tenant for free subscription', [
-                        'user_id' => $user->id,
                         'subscription_id' => $subscription->id,
                         'subdomain' => $subdomain,
                     ]);
                     
-                    // Create tenant on tool server - NO PASSWORD NEEDED
+                    // Create tenant - THIS SHOULD UPDATE THE SUBSCRIPTION!
                     $tenantData = $this->createTenantOnToolServer($subscription);
+                    
+                    // Refresh subscription to get updated data
+                    $subscription->refresh();
                     
                     DB::commit();
                     
-                    Log::info('Subscription and tenant created successfully', [
+                    Log::info('Tenant created and subscription updated', [
                         'subscription_id' => $subscription->id,
-                        'tenant_id' => $tenantData['tenant_id'] ?? null,
-                        'subdomain' => $subscription->subdomain,
+                        'tenant_id' => $subscription->tenant_id,
+                        'is_tenant_active' => $subscription->is_tenant_active,
                     ]);
                     
                     return redirect()
                         ->route('user.subscriptions.success', $subscription)
-                        ->with('success', 'Subscription activated successfully! Login with your main platform credentials.')
+                        ->with('success', 'Subscription activated successfully! You can now login to your tenant.')
                         ->with('tenant_credentials', $tenantData);
                         
                 } catch (\Exception $e) {
                     DB::rollBack();
                     
-                    Log::error('Tenant creation failed', [
+                    Log::error('Tenant creation failed during subscription', [
                         'subscription_id' => $subscription->id ?? null,
-                        'user_id' => $user->id,
-                        'subdomain' => $subdomain,
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
                     ]);
                     
                     return back()
                         ->withInput()
-                        ->with('error', 'Failed to create tenant: ' . $e->getMessage());
+                        ->with('error', 'Failed to create tenant: ' . $e->getMessage() . ' Please contact support.');
                 }
             }
 
             DB::commit();
 
-            // Redirect to payment based on method
+            // Redirect to payment for paid packages
+            Log::info('Redirecting to payment', [
+                'subscription_id' => $subscription->id,
+                'payment_method' => $request->payment_method,
+            ]);
+
             return match($request->payment_method) {
                 'stripe' => redirect()->route('user.subscriptions.payment.stripe', $subscription),
                 'paypal' => redirect()->route('user.subscriptions.payment.paypal', $subscription),
@@ -202,6 +214,7 @@ class SubscriptionController extends Controller
             Log::error('Subscription creation failed', [
                 'user_id' => auth()->id(),
                 'package_id' => $package->id,
+                'subdomain' => $subdomain ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -219,22 +232,17 @@ class SubscriptionController extends Controller
         $tool = $subscription->package->tool;
         $user = $subscription->user;
 
-        // Check tool connection
         if (!$tool->is_connected) {
             $tool->checkConnection();
         }
 
         if (!$tool->is_connected) {
-            throw new \Exception('Tool server is not available. Please contact support.');
+            throw new \Exception('Tool server is not available');
         }
 
-        // Generate tenant ID
         $tenantId = 'tenant_' . Str::uuid();
-
-        // Get hashed password directly from user database
         $hashedPassword = $user->password;
 
-        // Prepare API request data
         $requestData = [
             'tenant_id' => $tenantId,
             'subdomain' => $subscription->subdomain,
@@ -242,20 +250,17 @@ class SubscriptionController extends Controller
             'user_id' => $user->id,
             'admin_name' => $user->name,
             'admin_email' => $user->email,
-            'admin_password_hash' => $hashedPassword, // Send hashed password
+            'admin_password_hash' => $hashedPassword,
             'package_name' => $subscription->package->name,
             'starts_at' => $subscription->starts_at->toIso8601String(),
             'expires_at' => $subscription->expires_at?->toIso8601String(),
         ];
 
-        Log::info('Creating tenant via API with hashed password', [
-            'tool_url' => $tool->api_url,
+        Log::info('Sending tenant creation request', [
             'tenant_id' => $tenantId,
             'subdomain' => $subscription->subdomain,
-            'admin_email' => $user->email,
         ]);
 
-        // Make API request
         $response = Http::timeout(30)
             ->withHeaders([
                 'Authorization' => 'Bearer ' . $tool->api_token,
@@ -265,36 +270,41 @@ class SubscriptionController extends Controller
             ->post($tool->api_url . '/api/tenants/create', $requestData);
 
         if (!$response->successful()) {
-            Log::error('Tenant creation API failed', [
+            Log::error('Tenant API failed', [
                 'status' => $response->status(),
-                'response' => $response->body(),
-                'request_data' => Arr::except($requestData, ['admin_password_hash']),
+                'body' => $response->body(),
             ]);
-            
-            throw new \Exception('API request failed with status ' . $response->status());
+            throw new \Exception('API failed: ' . $response->body());
         }
 
         $responseData = $response->json();
 
         if (!($responseData['success'] ?? false)) {
-            throw new \Exception($responseData['message'] ?? 'Unknown error from tool server');
+            throw new \Exception($responseData['message'] ?? 'Unknown error');
         }
 
-        // ⚠️ IMPORTANT: Update subscription with tenant info
-        $subscription->update([
+        // ⚠️ THIS IS CRITICAL - UPDATE SUBSCRIPTION
+        $updated = $subscription->update([
             'tenant_id' => $tenantId,
             'is_tenant_active' => true,
             'tenant_created_at' => now(),
             'tenant_metadata' => $responseData,
         ]);
 
-        Log::info('Subscription updated with tenant info', [
+        if (!$updated) {
+            Log::error('Failed to update subscription with tenant info', [
+                'subscription_id' => $subscription->id,
+                'tenant_id' => $tenantId,
+            ]);
+            throw new \Exception('Failed to update subscription in database');
+        }
+
+        Log::info('Subscription successfully updated', [
             'subscription_id' => $subscription->id,
             'tenant_id' => $tenantId,
-            'is_tenant_active' => true,
+            'is_tenant_active' => $subscription->is_tenant_active,
         ]);
 
-        // Build login URL
         $baseDomain = config('app.base_domain', 'ideenpipeline.de');
         $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
                 '/tenant/' . $tenantId . '/login';
