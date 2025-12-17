@@ -84,13 +84,20 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get only active subscriptions
      */
-    public function activeSubscriptions(): HasMany
+    public function activeSubscriptions()
     {
         return $this->subscriptions()
             ->where('status', 'active')
-            ->where('expires_at', '>', now());
+            ->where('is_tenant_active', true)
+            ->whereNotNull('tenant_id');
     }
-
+    /**
+     * Get active tenant count
+     */
+    public function getActiveTenantsCountAttribute(): int
+    {
+        return $this->activeSubscriptions()->count();
+    }
     /**
      * Check if user is admin
      */
