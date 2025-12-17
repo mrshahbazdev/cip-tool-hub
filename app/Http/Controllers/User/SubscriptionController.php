@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Package;
 use App\Models\Subscription;
 use App\Models\Transaction;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Show all user subscriptions
      */
