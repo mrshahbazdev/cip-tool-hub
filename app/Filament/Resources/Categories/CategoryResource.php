@@ -6,23 +6,23 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
+use BackedEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    // Matching the Outlined Tag icon for the blog theme
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    // Fixed type hint to match Filament base Resource requirements
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    // Grouping under Blog Management for a cleaner sidebar
-    protected static ?string $navigationGroup = 'Blog Management';
+    // Fixed type hint to match Filament base Resource requirements
+    protected static string|null $navigationGroup = 'Blog Management';
 
     protected static ?string $recordTitleAttribute = 'name';
 
