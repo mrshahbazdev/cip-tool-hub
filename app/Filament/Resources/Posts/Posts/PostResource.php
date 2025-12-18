@@ -7,7 +7,7 @@ use App\Filament\Resources\Posts\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Posts\Tables\PostsTable;
-use App\Models\Posts\Post;
+use App\Models\Post;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
