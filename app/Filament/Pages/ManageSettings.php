@@ -7,9 +7,9 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -56,6 +56,7 @@ class ManageSettings extends Page implements HasForms
 
     /**
      * FIX: Updated signature to use Schema instead of Form to resolve TypeError.
+     * Updated: Grid import corrected to Filament\Schemas\Components\Grid.
      */
     public function form(Schema $schema): Schema
     {
