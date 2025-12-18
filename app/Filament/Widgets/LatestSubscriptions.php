@@ -18,6 +18,7 @@ class LatestSubscriptions extends BaseWidget
         return $table
             ->query(
                 Subscription::query()
+                    ->with(['user', 'package.tool']) // Eager load relations for performance
                     ->latest()
                     ->limit(10)
             )
@@ -25,19 +26,27 @@ class LatestSubscriptions extends BaseWidget
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('User')
                     ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                
+                /**
+                 * Updated Tool column to show the full domain as requested.
+                 * We use the relationship path from your SubscriptionsTable logic.
+                 */
+                Tables\Columns\TextColumn::make('package.tool.name')
+                    ->label('Tool / Instance')
+                    ->formatStateUsing(fn (Subscription $record) => $record->full_domain)
+                    ->description(fn (Subscription $record) => $record->package->tool->name)
+                    ->badge()
+                    ->color('info')
+                    ->icon('heroicon-m-globe-alt')
+                    ->copyable()
+                    ->copyMessage('Domain copied!')
                     ->sortable(),
                 
-                Tables\Columns\TextColumn::make('tool.name')
-                    ->badge()
-                    ->color('info'),
-                
                 Tables\Columns\TextColumn::make('package.name')
+                    ->label('Plan')
                     ->badge(),
-                
-                Tables\Columns\TextColumn::make('full_domain')
-                    ->icon('heroicon-m-globe-alt')
-                    ->limit(30)
-                    ->copyable(),
                 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -45,14 +54,16 @@ class LatestSubscriptions extends BaseWidget
                         'active' => 'success',
                         'expired' => 'danger',
                         'cancelled' => 'warning',
+                        'pending' => 'gray',
                         default => 'gray',
                     }),
                 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label('Provisioned')
                     ->dateTime()
                     ->since()
-                    ->sortable(),
+                    ->sortable()
+                    ->color('gray'),
             ])
             ->defaultSort('created_at', 'desc');
     }
