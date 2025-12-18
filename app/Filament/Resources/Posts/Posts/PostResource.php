@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Filament\Resources\Posts;
+namespace App\Filament\Resources\Posts\Posts;
 
-use App\Filament\Resources\Posts\Pages\CreatePosts;
-use App\Filament\Resources\Posts\Pages\EditPosts;
-use App\Filament\Resources\Posts\Pages\ListPosts;
-use App\Filament\Resources\Posts\Schemas\PostsForm;
-use App\Filament\Resources\Posts\Tables\PostsTable;
-use App\Models\Post;
+use App\Filament\Resources\Posts\Posts\Pages\CreatePost;
+use App\Filament\Resources\Posts\Posts\Pages\EditPost;
+use App\Filament\Resources\Posts\Posts\Pages\ListPosts;
+use App\Filament\Resources\Posts\Posts\Schemas\PostForm;
+use App\Filament\Resources\Posts\Posts\Tables\PostsTable;
+use App\Models\Posts\Post;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class PostsResource extends Resource
+class PostResource extends Resource
 {
-    protected static ?string $model = Posts::class;
+    protected static ?string $model = Post::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
@@ -24,7 +24,7 @@ class PostsResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return PostsForm::configure($schema);
+        return PostForm::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -43,8 +43,8 @@ class PostsResource extends Resource
     {
         return [
             'index' => ListPosts::route('/'),
-            'create' => CreatePosts::route('/create'),
-            'edit' => EditPosts::route('/{record}/edit'),
+            'create' => CreatePost::route('/create'),
+            'edit' => EditPost::route('/{record}/edit'),
         ];
     }
 }
