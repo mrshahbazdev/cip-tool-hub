@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,11 +15,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         /**
          * Registering the 'admin' middleware alias.
-         * This allows you to use ->middleware(['admin']) in your routes.
+         * This allows us to use ->middleware(['admin']) in routes/web.php 
+         * and ensures the AdminPanelProvider can reference it.
          */
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+
+        /**
+         * Optional: You can also define where unauthenticated users 
+         * should be redirected globally here.
+         */
+        $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

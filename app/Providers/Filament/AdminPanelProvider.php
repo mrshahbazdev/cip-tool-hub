@@ -23,6 +23,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
+            ->default()
             ->id('admin')
             ->path('admin')
             ->login()
@@ -38,11 +39,13 @@ class AdminPanelProvider extends PanelProvider
                 'success' => Color::Green,
                 'warning' => Color::Orange,
             ])
+            /* Automatically discover resources in the directory we structured */
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
+            /* Discovery and manual registration of Dashboard Widgets */
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Widgets\StatsOverview::class,
@@ -62,6 +65,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                /**
+                 * PRESERVED SECURITY: The 'admin' alias ensures only users 
+                 * with role === 'admin' can access this panel.
+                 */
+                'admin',
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
