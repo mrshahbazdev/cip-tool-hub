@@ -1,19 +1,23 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-bold text-2xl text-gray-900 dark:text-white flex items-center">
-                <svg class="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                {{ __('Browse Tools') }}
-            </h2>
-            <span class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg font-semibold">
-                {{ $tools->total() }} {{ Str::plural('Tool', $tools->total()) }}
-            </span>
+        <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-2xl text-gray-900 dark:text-white flex items-center">
+                        <svg class="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        {{ __('Browse Tools') }}
+                    </h2>
+                    <span class="text-sm text-gray-600 dark:text-gray-400 bg-indigo-100 dark:bg-indigo-900/30 px-4 py-2 rounded-lg font-semibold border border-indigo-200 dark:border-indigo-800">
+                        {{ $tools->total() }} {{ Str::plural('Tool', $tools->total()) }}
+                    </span>
+                </div>
+            </div>
         </div>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Search & Filter Section -->
             <div class="mb-8">
