@@ -14,10 +14,15 @@ use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use UnitEnum;
+use BackedEnum;
 
 class ManageSettings extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    /**
+     * FIX: Updated type hint to match Filament v4 parent class definition.
+     * The type must be string|BackedEnum|null.
+     */
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static string $view = 'filament.pages.manage-settings';
 
