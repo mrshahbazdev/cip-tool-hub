@@ -13,22 +13,25 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 
+/**
+ * Konpigurasion ti tabla para kadagiti Post.
+ */
 class PostsTable
 {
     /**
-     * Configures the Posts table helper using Filament v4 Table components.
-     * Designed for the CIP Tools premium blog ecosystem.
+     * Mang-configure iti tabla dagiti Posts a maus-usar kadagiti Filament v4 Table components.
      */
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
                 ImageColumn::make('cover_image')
-                    ->label('Cover')
+                    ->label('Aklub')
                     ->circular()
                     ->disk('public'),
 
                 TextColumn::make('title')
+                    ->label('Titulo')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
@@ -36,36 +39,37 @@ class PostsTable
                     ->color('primary'),
 
                 TextColumn::make('category.name')
-                    ->label('Classification')
+                    ->label('Klasipikasion')
                     ->badge()
                     ->color('info')
                     ->sortable(),
 
                 IconColumn::make('is_published')
-                    ->label('Status')
+                    ->label('Kasasaad')
                     ->boolean()
                     ->sortable(),
 
                 TextColumn::make('published_at')
-                    ->label('Release Date')
+                    ->label('Petsa ti Pannakaipalubos')
                     ->dateTime('M d, Y')
                     ->sortable()
                     ->toggleable(),
 
                 TextColumn::make('user.name')
-                    ->label('Author')
+                    ->label('Mannurat')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TernaryFilter::make('is_published')
-                    ->label('Published Status')
+                    ->label('Kasasaad ti Pannakaipablaak')
                     ->boolean()
-                    ->trueLabel('Published Only')
-                    ->falseLabel('Drafts Only')
+                    ->trueLabel('Dagiti Naipablaak laeng')
+                    ->falseLabel('Dagiti Draft laeng')
                     ->native(false),
 
                 SelectFilter::make('category')
+                    ->label('Kategoria')
                     ->relationship('category', 'name')
                     ->preload()
                     ->multiple(),
