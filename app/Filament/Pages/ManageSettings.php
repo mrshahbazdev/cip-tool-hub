@@ -4,12 +4,12 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -39,9 +39,7 @@ class ManageSettings extends Page implements HasForms
     protected static string|UnitEnum|null $navigationGroup = 'System Management';
 
     /**
-     * FIX: Changed to 'static'.
-     * The error indicates that Filament\Pages\BasePage::$title is static,
-     * so we must declare it as static here to match.
+     * The $title property is static in the base Filament Page class for this version.
      */
     protected static ?string $title = 'General Settings';
 
@@ -56,10 +54,13 @@ class ManageSettings extends Page implements HasForms
         }
     }
 
-    public function form(Form $form): Form
+    /**
+     * FIX: Updated signature to use Schema instead of Form to resolve TypeError.
+     */
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Branding')
                     ->description('Manage your site identity and logos.')
                     ->schema([
