@@ -19,19 +19,26 @@ use BackedEnum;
 class ManageSettings extends Page
 {
     /**
-     * FIX: Updated type hint to match Filament v4 parent class definition.
-     * The type must be string|BackedEnum|null.
+     * Navigation icons and groups remain static in Filament v4.
      */
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static string $view = 'filament.pages.manage-settings';
+    /**
+     * FIX: Removed 'static' keyword.
+     * The $view property must be non-static to match the parent Filament Page class.
+     */
+    protected string $view = 'filament.pages.manage-settings';
 
     /**
-     * FIX: Updated type hint to match Filament v4 parent class definition.
+     * Navigation group remains static.
      */
     protected static string|UnitEnum|null $navigationGroup = 'System Management';
 
-    protected static ?string $title = 'General Settings';
+    /**
+     * FIX: Removed 'static' keyword.
+     * The $title property is also non-static in the base Filament Page class.
+     */
+    protected ?string $title = 'General Settings';
 
     public ?array $data = [];
 
