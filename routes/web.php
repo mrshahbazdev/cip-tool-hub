@@ -5,6 +5,7 @@ use App\Http\Controllers\User\SubscriptionController;
 use App\Http\Controllers\User\ToolController;
 use App\Http\Controllers\BlogController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PageController;
 
 // Public Homepage
 Route::get('/', function () {
@@ -22,7 +23,12 @@ Route::get('/tools', [ToolController::class, 'index'])->name('tools.index');
 Route::get('/tools/{tool}', [ToolController::class, 'show'])->name('tools.show');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
-
+/**
+ * Public Dynamic Pages Route
+ * This captures slugs created in the admin panel and routes them to the PageController.
+ * Example: domain.com/p/privacy-policy
+ */
+Route::get('/p/{page:slug}', [PageController::class, 'show'])->name('pages.show');
 // Public API
 Route::post('/api/subdomain/check', [SubdomainController::class, 'checkAvailability'])->name('api.subdomain.check');
 
