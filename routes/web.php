@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\SubdomainController;
 use App\Http\Controllers\User\SubscriptionController;
 use App\Http\Controllers\User\ToolController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\BlogController;
 // Public Homepage
 Route::get('/', function () {
     $tools = \App\Models\Tool::where('status', true)
@@ -19,7 +19,8 @@ Route::get('/', function () {
 // Public Tools (no authentication required)
 Route::get('/tools', [ToolController::class, 'index'])->name('tools.index');
 Route::get('/tools/{tool}', [ToolController::class, 'show'])->name('tools.show');
-
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
 // Public API - Subdomain Checker (no auth required)
 Route::post('/api/subdomain/check', [SubdomainController::class, 'checkAvailability'])
     ->name('api.subdomain.check');
