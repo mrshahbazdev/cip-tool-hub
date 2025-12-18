@@ -1,55 +1,50 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Tables;
+namespace App\Filament\Resources\Categories;
 
+use App\Filament\Resources\Categories\Pages\CreateCategory;
+use App\Filament\Resources\Categories\Pages\EditCategory;
+use App\Filament\Resources\Categories\Pages\ListCategories;
+use App\Filament\Resources\Categories\Schemas\CategoryForm;
+use App\Filament\Resources\Categories\Tables\CategoriesTable;
+use App\Models\Category;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
 
-class CategoriesTable
+class CategoryResource extends Resource
 {
-    public static function configure(Table $table): Table
+    protected static ?string $model = Category::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $recordTitleAttribute = 'php artisan make:filament-resource Post';
+
+    public static function form(Schema $schema): Schema
     {
-        return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->searchable()
-                    ->sortable()
-                    ->weight('bold')
-                    ->color('primary'),
+        return CategoryForm::configure($schema);
+    }
 
-                TextColumn::make('slug')
-                    ->searchable()
-                    ->fontFamily('mono')
-                    ->color('gray')
-                    ->toggleable(isToggledHiddenByDefault: true),
+    public static function table(Table $table): Table
+    {
+        return CategoriesTable::configure($table);
+    }
 
-                TextColumn::make('posts_count')
-                    ->counts('posts')
-                    ->label('Total Posts')
-                    ->badge()
-                    ->color('info'),
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
 
-                TextColumn::make('updated_at')
-                    ->label('Last Activity')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                // Add category filters here if needed
-            ])
-            ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListCategories::route('/'),
+            'create' => CreateCategory::route('/create'),
+            'edit' => EditCategory::route('/{record}/edit'),
+        ];
     }
 }
