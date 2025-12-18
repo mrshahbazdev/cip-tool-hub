@@ -6,39 +6,26 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
-use BackedEnum;
-use UnitEnum;
 use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    // Fixed type hint to match Filament base Resource requirements exactly
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    // Fixed type hint to match Filament base Resource requirements exactly (added UnitEnum)
-    protected static string|UnitEnum|null $navigationGroup = 'Blog Management';
+    protected static ?string $navigationGroup = 'Blog Management';
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    /**
-     * Updated to use Schema instead of Form for Filament v4 compatibility
-     */
-    public static function form(Schema $schema): Schema
+    public static function form(Forms\Form $form): Forms\Form
     {
-        return $schema
-            ->components([
+        return $form
+            ->schema([
                 Forms\Components\Section::make('Category Details')
                     ->description('Define the naming and SEO URL for this category.')
                     ->schema([
@@ -46,8 +33,11 @@ class CategoryResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => 
-                                $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                            ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
+                                if ($operation === 'create') {
+                                    $set('slug', Str::slug($state));
+                                }
+                            }),
 
                         Forms\Components\TextInput::make('slug')
                             ->disabled()
@@ -69,25 +59,25 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
 
-                TextColumn::make('slug')
+                Tables\Columns\TextColumn::make('slug')
                     ->searchable()
                     ->fontFamily('mono')
                     ->color('gray')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('posts_count')
+                Tables\Columns\TextColumn::make('posts_count')
                     ->counts('posts')
                     ->label('Total Posts')
                     ->badge()
                     ->color('info'),
 
-                TextColumn::make('updated_at')
+                Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
                     ->dateTime()
                     ->sortable()
@@ -97,12 +87,12 @@ class CategoryResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
