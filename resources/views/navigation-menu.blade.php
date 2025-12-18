@@ -24,6 +24,17 @@
                         </svg>
                         Dashboard
                     </a>
+
+                    <!-- Protected Admin Panel Link -->
+                    @if(auth()->check() && auth()->user()->role === 'admin')
+                    <a href="/admin" 
+                       class="inline-flex items-center px-4 py-2 text-sm font-bold rounded-xl text-indigo-600 hover:bg-indigo-50 transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        Admin Backend
+                    </a>
+                    @endif
                     
                     <a href="{{ route('tools.index') }}" 
                        class="inline-flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 {{ request()->routeIs('tools.*') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-600' }}">
@@ -39,6 +50,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                         </svg>
                         Subscriptions
+                    </a>
+
+                    <a href="{{ route('blog.index') }}" 
+                       class="inline-flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 {{ request()->routeIs('blog.*') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-600' }}">
+                        <svg class="w-5 h-5 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20l-7-7 7-7" />
+                        </svg>
+                        Blog
                     </a>
                 </div>
             </div>
@@ -132,6 +151,13 @@
                 <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                 Dashboard
             </x-responsive-nav-link>
+
+            @if(auth()->check() && auth()->user()->role === 'admin')
+            <x-responsive-nav-link href="/admin" class="rounded-xl font-bold py-3 flex items-center text-indigo-600">
+                <svg class="w-5 h-5 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                Admin Backend
+            </x-responsive-nav-link>
+            @endif
             
             <x-responsive-nav-link href="{{ route('tools.index') }}" :active="request()->routeIs('tools.*')" class="rounded-xl font-bold py-3 flex items-center">
                 <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
