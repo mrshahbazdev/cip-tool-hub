@@ -4,16 +4,18 @@ namespace App\Filament\Resources\Categories\Schemas;
 
 use App\Models\Category;
 use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\TextInput;
-use Filament\Schemas\Components\Textarea;
-use Filament\Schemas\Set;
+use Filament\Schema\Components\Section;
+use Filament\Schema\Components\TextInput;
+use Filament\Schema\Components\Textarea;
+use Filament\Schema\Set;
 use Illuminate\Support\Str;
 
 class CategoryForm
 {
     /**
-     * Configures the form schema using Filament v4 Schemas components
+     * Configures the form schema using Filament v4 components.
+     * Note: We use Filament\Schemas\Schema for the type hint to match the Resource,
+     * but components are imported from the Filament\Schema namespace.
      */
     public static function configure(Schema $schema): Schema
     {
