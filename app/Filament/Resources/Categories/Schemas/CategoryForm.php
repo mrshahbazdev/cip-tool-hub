@@ -7,7 +7,7 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
-use Filament\Schemas\Set;
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 
 class CategoryForm
@@ -17,6 +17,7 @@ class CategoryForm
      * Following the provided documentation:
      * - Layout components (Section) are in Filament\Schemas\Components
      * - Field components (TextInput, Textarea) are in Filament\Forms\Components
+     * - Utilities (Set) are in Filament\Schemas\Components\Utilities
      */
     public static function configure(Schema $schema): Schema
     {
