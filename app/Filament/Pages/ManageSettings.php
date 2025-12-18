@@ -13,11 +13,15 @@ use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Concerns\InteractsWithForms;
 use UnitEnum;
 use BackedEnum;
 
-class ManageSettings extends Page
+class ManageSettings extends Page implements HasForms
 {
+    use InteractsWithForms;
+
     /**
      * Navigation icons and groups remain static in Filament v4.
      */
