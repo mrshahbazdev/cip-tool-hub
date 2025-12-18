@@ -4,7 +4,6 @@
             {{ __('Browse Tools') }}
         </h2>
     </x-slot>
-    <link href="https://unpkg.com/tailwindcss@1.9.6/dist/tailwind.min.css" rel="stylesheet">
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Search & Filter Section -->
