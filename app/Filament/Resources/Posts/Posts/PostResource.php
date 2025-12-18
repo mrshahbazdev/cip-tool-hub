@@ -9,6 +9,7 @@ use App\Filament\Resources\Posts\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Posts\Tables\PostsTable;
 use App\Models\Post;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,9 +19,25 @@ class PostResource extends Resource
 {
     protected static ?string $model = Post::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    /**
+     * Use a document icon to distinguish posts from categories
+     */
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    /**
+     * Grouping under "Blog Management" to match the Category Resource
+     */
+    protected static string|UnitEnum|null $navigationGroup = 'Blog Management';
+
+    /**
+     * Setting the slug to 'posts' ensures the URL is /admin/posts
+     */
+    protected static ?string $slug = 'posts';
+
+    /**
+     * Changed from 'name' to 'title' to match the Post model schema
+     */
+    protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
     {
