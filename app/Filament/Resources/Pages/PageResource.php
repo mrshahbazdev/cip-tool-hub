@@ -9,6 +9,7 @@ use App\Filament\Resources\Pages\Schemas\PageForm;
 use App\Filament\Resources\Pages\Tables\PagesTable;
 use App\Models\Page;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,9 +19,25 @@ class PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    /**
+     * Updated icon to DocumentDuplicate for a professional pages aesthetic.
+     */
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentDuplicate;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    /**
+     * Grouping under "System Management" to keep the sidebar clean and organized.
+     */
+    protected static string|UnitEnum|null $navigationGroup = 'System Management';
+
+    /**
+     * Corrected to 'title' as the Page model uses title instead of name.
+     */
+    protected static ?string $recordTitleAttribute = 'title';
+
+    /**
+     * Slug for the resource URL.
+     */
+    protected static ?string $slug = 'pages';
 
     public static function form(Schema $schema): Schema
     {
