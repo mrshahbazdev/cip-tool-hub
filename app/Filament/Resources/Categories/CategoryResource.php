@@ -6,6 +6,8 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
+use BackedEnum;
+use UnitEnum;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -16,9 +18,9 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Blog Management';
+    protected static string|UnitEnum|null $navigationGroup = 'Blog Management';
 
     protected static ?string $recordTitleAttribute = 'name';
 
