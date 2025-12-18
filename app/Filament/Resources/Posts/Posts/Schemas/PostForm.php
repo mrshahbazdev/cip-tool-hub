@@ -21,15 +21,15 @@ class PostForm
 {
     /**
      * Configures the Post form schema using Filament v4 components.
-     * Layout: 2/3 Main Content, 1/3 Sidebar Settings.
+     * Layout optimized: 3/4 Main Content (75%), 1/4 Sidebar Settings (25%).
      */
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Grid::make(3)
+                Grid::make(4) // Updated to 4 columns for finer layout control
                     ->schema([
-                        // Main Content Column (Left)
+                        // Main Content Column (Left - occupies 3 out of 4 columns)
                         Section::make('Post Composition')
                             ->description('Draft your story and primary metadata.')
                             ->schema([
@@ -63,9 +63,9 @@ class PostForm
                                     ->rows(3)
                                     ->columnSpanFull(),
                             ])
-                            ->columnSpan(2),
+                            ->columnSpan(3), // Increased span from 2 to 3
 
-                        // Sidebar Column (Right)
+                        // Sidebar Column (Right - occupies 1 out of 4 columns)
                         Grid::make(1)
                             ->schema([
                                 Section::make('Media & Classification')
