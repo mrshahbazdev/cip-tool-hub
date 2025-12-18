@@ -13,6 +13,7 @@ use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use UnitEnum;
 
 class ManageSettings extends Page
 {
@@ -20,7 +21,10 @@ class ManageSettings extends Page
 
     protected static string $view = 'filament.pages.manage-settings';
 
-    protected static ?string $navigationGroup = 'System Management';
+    /**
+     * FIX: Updated type hint to match Filament v4 parent class definition.
+     */
+    protected static string|UnitEnum|null $navigationGroup = 'System Management';
 
     protected static ?string $title = 'General Settings';
 
@@ -30,7 +34,9 @@ class ManageSettings extends Page
     {
         // Load the first record (we only ever use one)
         $settings = Setting::first();
-        $this->form->fill($settings->toArray());
+        if ($settings) {
+            $this->form->fill($settings->toArray());
+        }
     }
 
     public function form(Form $form): Form
@@ -99,11 +105,13 @@ class ManageSettings extends Page
     public function save(): void
     {
         $settings = Setting::first();
-        $settings->update($this->form->getState());
+        if ($settings) {
+            $settings->update($this->form->getState());
 
-        Notification::make()
-            ->title('Settings updated successfully!')
-            ->success()
-            ->send();
+            Notification::make()
+                ->title('Settings updated successfully!')
+                ->success()
+                ->send();
+        }
     }
 }
