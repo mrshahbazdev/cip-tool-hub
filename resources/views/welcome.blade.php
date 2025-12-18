@@ -1,141 +1,344 @@
-<x-guest-layout>
-    <div class="min-h-screen flex flex-col">
-        <!-- Premium Navigation (Matching Layout) -->
-        <nav class="bg-white/80 backdrop-blur-lg border-b border-blue-100/50 sticky top-0 z-50 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-20">
-                    <div class="flex items-center">
-                        <a href="/" class="flex items-center group">
-                            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 transform group-hover:scale-105 transition duration-300">
-                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                </svg>
-                            </div>
-                            <span class="ml-4 text-2xl font-extrabold tracking-tight text-gray-900 hidden sm:block">
-                                CIP <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Tools</span>
-                            </span>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config('app.name', 'CIP Tools') }} - Professional SaaS Platform</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientMove 15s ease infinite;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="antialiased h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-900 selection:bg-blue-100 selection:text-blue-700" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = window.pageYOffset > 50">
+
+    <!-- Premium Navigation -->
+    <nav class="fixed w-full top-0 z-50 transition-all duration-300 border-b"
+         :class="scrolled ? 'glass border-blue-100 shadow-lg py-2' : 'bg-transparent border-transparent py-4'">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="{{ route('home') }}" class="flex items-center group">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition duration-300">
+                        <span class="text-white font-extrabold text-xl">CT</span>
+                    </div>
+                    <div class="ml-4">
+                        <h1 class="text-2xl font-black tracking-tight text-gray-900">CIP<span class="text-blue-600">Tools</span></h1>
+                        <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 leading-none">Professional Ecosystem</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="#tools" class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition">Tools</a>
+                    <a href="#features" class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition">Features</a>
+                    <a href="#pricing" class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition">Pricing</a>
+                    
+                    <div class="h-6 w-px bg-gray-200 mx-4"></div>
+
+                    @auth
+                        <a href="{{ route('dashboard') }}" 
+                           class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-extrabold text-sm shadow-xl shadow-blue-500/20 hover:-translate-y-0.5 transition">
+                            <i class="fas fa-tachometer-alt mr-2"></i>My Dashboard
                         </a>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm font-bold text-gray-600 hover:text-blue-600 transition-colors px-4 py-2">Login</a>
-                        <a href="{{ route('register') }}" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/20 hover:-translate-y-0.5 transition-all text-sm">Join Free</a>
-                    </div>
+                    @else
+                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition">Login</a>
+                        <a href="{{ route('register') }}" 
+                           class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-extrabold text-sm shadow-xl shadow-blue-500/20 hover:-translate-y-0.5 transition ml-2">
+                            Get Started
+                        </a>
+                    @endauth
+                </div>
+
+                <!-- Mobile Toggle -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-3 rounded-2xl bg-white shadow-sm border border-gray-100">
+                    <i class="fas fa-bars text-xl text-blue-600"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-transition class="md:hidden glass border-t border-blue-50 p-6 space-y-4">
+            <a href="#tools" @click="mobileMenuOpen = false" class="block text-lg font-bold text-gray-700">Tools</a>
+            <a href="#features" @click="mobileMenuOpen = false" class="block text-lg font-bold text-gray-700">Features</a>
+            <a href="#pricing" @click="mobileMenuOpen = false" class="block text-lg font-bold text-gray-700">Pricing</a>
+            <hr class="border-gray-100">
+            @auth
+                <a href="{{ route('dashboard') }}" class="block py-4 text-center bg-blue-600 text-white rounded-2xl font-bold">Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="block text-center font-bold text-gray-600">Login</a>
+                <a href="{{ route('register') }}" class="block py-4 text-center bg-blue-600 text-white rounded-2xl font-bold">Get Started</a>
+            @endauth
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <!-- Background Decor -->
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-[600px] h-[600px] bg-blue-100 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-blob pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-[600px] h-[600px] bg-indigo-100 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-blob animation-delay-2000 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-widest mb-8">
+                <span class="flex h-2 w-2 rounded-full bg-blue-600 mr-2 animate-pulse"></span>
+                Next Generation SaaS Architecture
+            </div>
+            
+            <h1 class="text-6xl md:text-8xl font-black text-gray-900 mb-8 leading-[1.1] tracking-tight">
+                Empower Your <br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">Business Growth</span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto mb-12 font-medium leading-relaxed">
+                Unlock professional-grade tools with instant subdomain deployment. 
+                Secure, scalable, and built for modern enterprise demands.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                @guest
+                    <a href="{{ route('register') }}" 
+                       class="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-lg hover:shadow-2xl hover:shadow-blue-500/40 transform hover:-translate-y-1 transition shadow-xl">
+                        <i class="fas fa-rocket mr-3"></i>Start Free Trial
+                    </a>
+                @else
+                    <a href="{{ route('tenants.create') }}" 
+                       class="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-lg hover:shadow-2xl hover:shadow-blue-500/40 transform hover:-translate-y-1 transition shadow-xl">
+                        <i class="fas fa-plus mr-3"></i>Create New Tenant
+                    </a>
+                @endguest
+                <a href="#tools" 
+                   class="px-10 py-5 glass border border-blue-100 text-blue-700 rounded-2xl font-black text-lg hover:bg-white transition shadow-lg">
+                    Browse Toolset
+                </a>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mt-24">
+                <div class="p-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-white">
+                    <p class="text-4xl font-black text-blue-600 mb-1">1k+</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Clients</p>
+                </div>
+                <div class="p-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-white">
+                    <p class="text-4xl font-black text-indigo-600 mb-1">99.9%</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Uptime Rate</p>
+                </div>
+                <div class="p-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-white">
+                    <p class="text-4xl font-black text-purple-600 mb-1">24/7</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Support Live</p>
+                </div>
+                <div class="p-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-white">
+                    <p class="text-4xl font-black text-blue-600 mb-1">Instant</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Setup Time</p>
                 </div>
             </div>
-        </nav>
+        </div>
+    </header>
 
-        <!-- Main Content (Reset Password Form) -->
-        <main class="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-            <!-- Decorative Blobs (Background) -->
-            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse pointer-events-none"></div>
+    <!-- Tools Section -->
+    <section id="tools" class="py-32 bg-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">Available Solutions</h2>
+                <p class="text-xl text-gray-500 max-w-2xl mx-auto font-medium">
+                    Deploy world-class applications on your custom subdomains in seconds.
+                </p>
+            </div>
 
-            <div class="max-w-md w-full relative z-10">
-                <!-- Header -->
-                <div class="text-center mb-10">
-                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                        Reset Password
-                    </h2>
-                    <p class="mt-4 text-gray-500 text-lg font-medium">
-                        Secure your account with a new password 🔐
-                    </p>
+            @if($tools->isEmpty())
+                <div class="bg-blue-50 rounded-[2.5rem] p-12 text-center border-2 border-dashed border-blue-200">
+                    <i class="fas fa-layer-group text-blue-300 text-6xl mb-6"></i>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Workspace Preparation</h3>
+                    <p class="text-gray-500">We are currently curating the best tools for you. Please check back shortly.</p>
                 </div>
-
-                <!-- Form Card -->
-                <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-500/10 p-10 space-y-8 border border-white">
-                    <x-validation-errors class="mb-4" />
-
-                    <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
-                        @csrf
-
-                        <!-- Fixed: Using request() helper instead of $request variable -->
-                        <input type="hidden" name="token" value="{{ request()->route('token') }}">
-
-                        <!-- Email Field -->
-                        <div class="group">
-                            <label for="email" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                                <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                Email Address
-                            </label>
-                            <input id="email" 
-                                   type="email" 
-                                   name="email" 
-                                   value="{{ old('email', request()->email) }}"
-                                   required
-                                   autofocus
-                                   autocomplete="username"
-                                   placeholder="name@company.com"
-                                   class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 text-gray-900 placeholder-gray-400 transition duration-200 outline-none font-medium">
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="group">
-                            <label for="password" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                                <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                                New Password
-                            </label>
-                            <input id="password" 
-                                   type="password" 
-                                   name="password" 
-                                   required
-                                   autocomplete="new-password"
-                                   placeholder="••••••••"
-                                   class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 text-gray-900 placeholder-gray-400 transition duration-200 outline-none font-medium">
-                            <p class="text-[11px] text-gray-400 mt-2 ml-1 font-bold uppercase tracking-wider">Min. 8 characters with letters & numbers</p>
-                        </div>
-
-                        <!-- Confirm Password -->
-                        <div class="group">
-                            <label for="password_confirmation" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                                <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Confirm New Password
-                            </label>
-                            <input id="password_confirmation" 
-                                   type="password" 
-                                   name="password_confirmation" 
-                                   required
-                                   autocomplete="new-password"
-                                   placeholder="••••••••"
-                                   class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 text-gray-900 placeholder-gray-400 transition duration-200 outline-none font-medium">
-                        </div>
-
-                        <!-- Security Notice -->
-                        <div class="bg-blue-50/50 p-5 rounded-2xl border-2 border-blue-50/50">
-                            <div class="flex items-start">
-                                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <div>
-                                    <p class="text-sm text-blue-800 font-bold">Password Security Tips</p>
-                                    <ul class="mt-2 text-[11px] text-blue-700 space-y-1 font-medium leading-relaxed">
-                                        <li>• Mix uppercase, lowercase, and numbers</li>
-                                        <li>• Include at least one special character</li>
-                                        <li>• Avoid using your name or birthday</li>
-                                    </ul>
+            @else
+                <div class="grid md:grid-cols-3 gap-10">
+                    @foreach($tools as $tool)
+                        <div class="group bg-white rounded-[2.5rem] border border-gray-100 p-2 shadow-sm hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
+                            <div class="p-8">
+                                <div class="flex items-center mb-8">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                        <span class="text-2xl font-black">{{ strtoupper(substr($tool->name, 0, 2)) }}</span>
+                                    </div>
+                                    <div class="ml-5">
+                                        <h3 class="text-2xl font-black text-gray-900 group-hover:text-blue-600 transition-colors">{{ $tool->name }}</h3>
+                                        <span class="text-xs font-bold text-blue-500 uppercase tracking-tighter">.{{ $tool->domain }}</span>
+                                    </div>
                                 </div>
+                                
+                                <p class="text-gray-500 mb-8 font-medium leading-relaxed line-clamp-3">{{ $tool->description }}</p>
+                                
+                                @if($tool->packages->count() > 0)
+                                    @php $cheapest = $tool->packages->sortBy('price')->first(); @endphp
+                                    <div class="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Entry Plan</p>
+                                        <div class="flex items-baseline">
+                                            <span class="text-3xl font-black text-gray-900">
+                                                {{ $cheapest->price == 0 ? 'FREE' : '€' . number_format($cheapest->price, 2) }}
+                                            </span>
+                                            <span class="ml-1 text-sm font-bold text-gray-400">/mo</span>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <a href="{{ route('tools.show', $tool) }}" 
+                                   class="flex items-center justify-center w-full py-4 bg-gray-900 text-white rounded-2xl font-black group-hover:bg-blue-600 transition shadow-lg">
+                                    View Packages <i class="fas fa-chevron-right ml-3 text-sm"></i>
+                                </a>
                             </div>
                         </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
 
-                        <!-- Reset Button -->
-                        <button type="submit" class="w-full py-4.5 px-6 text-white font-extrabold text-lg rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 focus:outline-none focus:ring-4 focus:ring-blue-200 transform hover:-translate-y-0.5 transition duration-300 flex items-center justify-center group mt-4">
-                            <span>Reset Password</span>
-                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                        </button>
-                    </form>
+    <!-- Features Grid -->
+    <section id="features" class="py-32 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">Built for Excellence</h2>
+                <p class="text-xl text-gray-500 max-w-2xl mx-auto font-medium">Everything you need to manage a global business infrastructure.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-8">
+                        <i class="fas fa-bolt text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Zero-Touch Ops</h3>
+                    <p class="text-gray-500 font-medium leading-relaxed">Automatic provisioning of databases and subdomains. Launch your enterprise tool in under 60 seconds.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mb-8">
+                        <i class="fas fa-shield-halved text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Military-Grade</h3>
+                    <p class="text-gray-500 font-medium leading-relaxed">End-to-end encryption for all tenant data. We follow GDPR guidelines to the highest standard.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-8">
+                        <i class="fas fa-expand-arrows-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Elastic Scaling</h3>
+                    <p class="text-gray-500 font-medium leading-relaxed">Start with 10 users and grow to 100,000. Our infrastructure adapts to your load automatically.</p>
                 </div>
             </div>
-        </main>
+        </div>
+    </section>
 
-        <!-- Premium Footer (Matching Layout) -->
-        <footer class="bg-gray-900 border-t border-gray-800 relative z-10">
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">Transparent Growth</h2>
+                <p class="text-xl text-gray-500 max-w-2xl mx-auto font-medium">Simple plans that scale as you do.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Plan 1 -->
+                <div class="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-lg">
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Starter</h3>
+                    <div class="flex items-baseline mb-8">
+                        <span class="text-5xl font-black text-gray-900">€0</span>
+                        <span class="ml-2 text-gray-400 font-bold">/mo</span>
+                    </div>
+                    <ul class="space-y-4 mb-10">
+                        <li class="flex items-center text-gray-500 font-bold"><i class="fas fa-check text-blue-500 mr-3"></i> 1 Active Tool</li>
+                        <li class="flex items-center text-gray-500 font-bold"><i class="fas fa-check text-blue-500 mr-3"></i> Up to 10 Users</li>
+                        <li class="flex items-center text-gray-500 font-bold"><i class="fas fa-check text-blue-500 mr-3"></i> Community Support</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="block text-center py-4 bg-gray-100 text-gray-900 rounded-2xl font-black hover:bg-gray-200 transition">Get Started</a>
+                </div>
+
+                <!-- Plan 2 (Featured) -->
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-10 rounded-[3rem] shadow-2xl shadow-blue-500/30 transform scale-105 relative">
+                    <div class="absolute top-0 right-10 -translate-y-1/2 px-4 py-1 bg-yellow-400 text-gray-900 text-xs font-black rounded-full">MOST POPULAR</div>
+                    <h3 class="text-xl font-black text-white mb-2">Professional</h3>
+                    <div class="flex items-baseline mb-8">
+                        <span class="text-5xl font-black text-white">€49</span>
+                        <span class="ml-2 text-blue-100 font-bold">/mo</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 text-white">
+                        <li class="flex items-center font-bold"><i class="fas fa-check text-yellow-300 mr-3"></i> 3 Active Tools</li>
+                        <li class="flex items-center font-bold"><i class="fas fa-check text-yellow-300 mr-3"></i> Unlimited Users</li>
+                        <li class="flex items-center font-bold"><i class="fas fa-check text-yellow-300 mr-3"></i> Priority Support</li>
+                        <li class="flex items-center font-bold"><i class="fas fa-check text-yellow-300 mr-3"></i> Custom Branding</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="block text-center py-4 bg-white text-blue-600 rounded-2xl font-black shadow-xl hover:bg-blue-50 transition">Select Plan</a>
+                </div>
+
+                <!-- Plan 3 -->
+                <div class="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-lg">
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Enterprise</h3>
+                    <div class="flex items-baseline mb-8">
+                        <span class="text-5xl font-black text-gray-900">Custom</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 text-gray-500 font-bold">
+                        <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i> Unlimited Tools</li>
+                        <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i> Dedicated SLA</li>
+                        <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i> On-Premise Options</li>
+                    </ul>
+                    <a href="mailto:sales@cip-tools.com" class="block text-center py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-black transition">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-20 px-4">
+        <div class="max-w-5xl mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[4rem] p-20 text-center relative overflow-hidden shadow-2xl shadow-blue-500/20">
+            <div class="absolute inset-0 bg-white/5 opacity-20 animate-pulse"></div>
+            <h2 class="text-4xl md:text-5xl font-black text-white mb-8">Ready to transform your workflow?</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <a href="{{ route('register') }}" class="px-10 py-5 bg-white text-blue-600 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-50 transition">Get Started Now</a>
+                <a href="mailto:support@cip-tools.com" class="px-10 py-5 border-2 border-white text-white rounded-2xl font-black text-lg hover:bg-white/10 transition">Talk to Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 relative z-10">
                 <div class="max-w-7xl mx-auto pt-16 pb-8 px-4 sm:px-6 lg:px-8">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                         <!-- Branding -->
@@ -194,5 +397,7 @@
                 <!-- Animated Accent Line -->
                 <div class="h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-gradient"></div>
             </footer>
-    </div>
-</x-guest-layout>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>
