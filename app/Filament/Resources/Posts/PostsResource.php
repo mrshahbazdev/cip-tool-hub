@@ -2,46 +2,31 @@
 
 namespace App\Filament\Resources\Posts;
 
-use App\Filament\Resources\Posts\Pages\CreatePost;
-use App\Filament\Resources\Posts\Pages\EditPost;
+use App\Filament\Resources\Posts\Pages\CreatePosts;
+use App\Filament\Resources\Posts\Pages\EditPosts;
 use App\Filament\Resources\Posts\Pages\ListPosts;
-use App\Filament\Resources\Posts\Schemas\PostForm;
+use App\Filament\Resources\Posts\Schemas\PostsForm;
 use App\Filament\Resources\Posts\Tables\PostsTable;
-use App\Models\Post;
+use App\Models\Posts;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class PostResource extends Resource
+class PostsResource extends Resource
 {
-    protected static ?string $model = Post::class;
+    protected static ?string $model = Posts::class;
 
-    /**
-     * Set the navigation icon for blog posts
-     */
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    /**
-     * Grouping under "Blog Management"
-     */
-    protected static string|UnitEnum|null $navigationGroup = 'Blog Management';
+    protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $recordTitleAttribute = 'title';
-
-    /**
-     * Form Configuration delegated to PostForm schema
-     */
     public static function form(Schema $schema): Schema
     {
-        return PostForm::configure($schema);
+        return PostsForm::configure($schema);
     }
 
-    /**
-     * Table Configuration delegated to PostsTable helper
-     */
     public static function table(Table $table): Table
     {
         return PostsTable::configure($table);
@@ -58,8 +43,8 @@ class PostResource extends Resource
     {
         return [
             'index' => ListPosts::route('/'),
-            'create' => CreatePost::route('/create'),
-            'edit' => EditPost::route('/{record}/edit'),
+            'create' => CreatePosts::route('/create'),
+            'edit' => EditPosts::route('/{record}/edit'),
         ];
     }
 }
