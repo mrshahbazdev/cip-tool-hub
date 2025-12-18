@@ -7,6 +7,7 @@ use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
 use BackedEnum;
+use UnitEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,11 +19,11 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    // Fixed type hint to match Filament base Resource requirements
+    // Fixed type hint to match Filament base Resource requirements exactly
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    // Fixed type hint to match Filament base Resource requirements
-    protected static string|null $navigationGroup = 'Blog Management';
+    // Fixed type hint to match Filament base Resource requirements exactly (added UnitEnum)
+    protected static string|UnitEnum|null $navigationGroup = 'Blog Management';
 
     protected static ?string $recordTitleAttribute = 'name';
 
