@@ -24,8 +24,8 @@ class ManageSettings extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     /**
-     * FIX: Removed 'static' keyword.
-     * The $view property must be non-static to match the parent Filament Page class.
+     * The $view property must remain non-static (instance property) 
+     * to match the parent Filament Page class definition.
      */
     protected string $view = 'filament.pages.manage-settings';
 
@@ -35,10 +35,11 @@ class ManageSettings extends Page
     protected static string|UnitEnum|null $navigationGroup = 'System Management';
 
     /**
-     * FIX: Removed 'static' keyword.
-     * The $title property is also non-static in the base Filament Page class.
+     * FIX: Changed to 'static'.
+     * The error indicates that Filament\Pages\BasePage::$title is static,
+     * so we must declare it as static here to match.
      */
-    protected ?string $title = 'General Settings';
+    protected static ?string $title = 'General Settings';
 
     public ?array $data = [];
 
