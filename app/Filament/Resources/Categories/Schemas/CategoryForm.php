@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\Categories\Schemas;
 
 use App\Models\Category;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Set;
+use Filament\Schema\Schema;
+use Filament\Schema\Components\Section;
+use Filament\Schema\Components\TextInput;
+use Filament\Schema\Components\Textarea;
+use Filament\Schema\Set;
 use Illuminate\Support\Str;
 
 class CategoryForm
