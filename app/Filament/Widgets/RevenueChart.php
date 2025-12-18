@@ -13,9 +13,10 @@ class RevenueChart extends ChartWidget
     protected ?string $heading = 'Revenue Trend';
 
     /**
-     * Set the polling interval to '30s' for a realtime feel.
+     * FIX: Removed 'static' keyword.
+     * The parent ChartWidget declares this as a non-static property.
      */
-    protected static ?string $pollingInterval = '30s';
+    protected ?string $pollingInterval = '30s';
 
     /**
      * Determines the data displayed on the chart.
