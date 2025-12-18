@@ -41,16 +41,21 @@
                     @foreach($posts as $post)
                         <article class="group bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-blue-100 shadow-md hover:shadow-2xl hover:shadow-blue-600/10 transition-all duration-500 flex flex-col h-full overflow-hidden">
                             <!-- Image Container -->
-                            <div class="relative aspect-[16/10] overflow-hidden border-b border-blue-50">
+                            <div class="relative aspect-[16/10] overflow-hidden border-b border-blue-50 bg-gray-100">
                                 @if($post->cover_image)
-                                    <img src="{{ Storage::url($post->cover_image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                                        <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
+                                    <img src="{{ Storage::url($post->cover_image) }}" 
+                                         alt="{{ $post->title }}" 
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                         onerror="this.parentElement.querySelector('.image-error-placeholder').classList.remove('hidden'); this.style.display='none';">
                                 @endif
+                                
+                                <!-- Placeholder (Hidden by default, shown if image fails or is null) -->
+                                <div class="image-error-placeholder w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center {{ $post->cover_image ? 'hidden' : '' }}">
+                                    <svg class="w-16 h-16 text-blue-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+
                                 <!-- Category Badge Overlay -->
                                 <div class="absolute top-6 left-6">
                                     <span class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg border border-blue-500">
