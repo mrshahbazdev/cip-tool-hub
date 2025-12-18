@@ -13,42 +13,42 @@ class RevenueChart extends ChartWidget
     protected ?string $heading = 'Revenue Trend';
 
     /**
-     * FIX: Removed 'static' keyword.
-     * The parent ChartWidget declares this as a non-static property.
+     * Set the polling interval to '30s' for a realtime feel.
      */
     protected ?string $pollingInterval = '30s';
 
     /**
      * Determines the data displayed on the chart.
-     * It calculates the monthly sum of completed transactions.
+     * Updated to use the Trend package to ensure all months are represented,
+     * preventing the "single dot" issue when data is sparse.
      */
     protected function getData(): array
     {
-        // Get data for the last 6 months
-        $data = Transaction::where('status', 'completed')
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->selectRaw('SUM(amount) as total, DATE_FORMAT(created_at, "%Y-%m") as month')
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        $data = Trend::query(Transaction::where('status', 'completed'))
+            ->between(
+                start: now()->subMonths(5)->startOfMonth(),
+                end: now()->endOfMonth(),
+            )
+            ->perMonth()
+            ->sum('amount');
 
         return [
             'datasets' => [
                 [
                     'label' => 'Revenue (€)',
-                    'data' => $data->pluck('total')->toArray(),
+                    'data' => $data->map(fn (TrendValue $value) => $value->aggregate)->toArray(),
                     'fill' => 'start',
                     'borderColor' => '#2563eb',
                     'backgroundColor' => 'rgba(37, 99, 235, 0.1)',
+                    'tension' => 0.4, // Adds a smooth curve to the line
                 ],
             ],
-            'labels' => $data->map(fn ($item) => Carbon::parse($item->month)->format('M Y'))->toArray(),
+            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->format('M Y'))->toArray(),
         ];
     }
 
     protected function getType(): string
     {
-        // Changed to 'line' for a professional revenue trend aesthetic
         return 'line';
     }
 
