@@ -23,16 +23,16 @@
             <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-500/10 p-10 space-y-8 border border-white">
                 <x-validation-errors class="mb-4" />
 
-                @session('status')
+                @if (session('status'))
                     <div class="mb-4 p-4 bg-green-50 border border-green-100 rounded-2xl">
                         <p class="text-sm font-bold text-green-600 flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            {{ $value }}
+                            {{ session('status') }}
                         </p>
                     </div>
-                @endsession
+                @endif
 
                 <form method="POST" action="{{ route('login') }}" class="space-y-6">
                     @csrf
@@ -93,7 +93,7 @@
                     </div>
 
                     <!-- Login Button -->
-                    <button type="submit" class="w-full py-4.5 px-6 text-white font-extrabold text-lg rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 focus:outline-none focus:ring-4 focus:ring-blue-200 transform hover:-translate-y-0.5 transition duration-300 flex items-center justify-center group mt-4">
+                    <button type="submit" class="w-full py-4 px-6 text-white font-extrabold text-lg rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 focus:outline-none focus:ring-4 focus:ring-blue-200 transform hover:-translate-y-0.5 transition duration-300 flex items-center justify-center group mt-4">
                         <span>Sign In</span>
                         <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -131,4 +131,4 @@
             </p>
         </div>
     </div>
-</nav>
+</x-guest-layout>
