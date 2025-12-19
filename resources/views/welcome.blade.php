@@ -70,7 +70,7 @@
                     @if($settings?->site_logo)
                         <img src="{{ Storage::url($settings->site_logo) }}" 
                              alt="Logo" 
-                             class="h-22 w-auto object-contain transform group-hover:scale-105 transition duration-300">
+                             class="h-12 w-auto object-contain transform group-hover:scale-105 transition duration-300">
                     @else
                         <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition duration-300">
                             <span class="text-white font-extrabold text-xl">CT</span>
@@ -299,96 +299,90 @@
     </section>
 
     <!-- Fully Dynamic Footer -->
-    <footer class="bg-gray-900 border-t border-gray-800 w-full">
-                <div class="max-w-7xl mx-auto pt-16 pb-12 px-4 sm:px-6 lg:px-8">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
-                        <!-- Branding Section -->
-                        <div class="col-span-1 md:col-span-2">
-                            <div class="flex items-center space-x-3 mb-6">
-                                @if($settings?->site_logo)
-                                    <img src="{{ Storage::url($settings->site_logo) }}" alt="Logo" class="h-10 w-auto rounded-lg shadow-lg">
-                                @else
-                                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg">
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                        </svg>
-                                    </div>
-                                @endif
-                                <h3 class="text-2xl font-bold text-white tracking-tight">
-                                    {{ $settings->site_name ?? config('app.name', 'CIP Tools') }}
-                                </h3>
+    <footer class="bg-gray-900 border-t border-gray-800 relative z-10">
+        <div class="max-w-7xl mx-auto pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+                <!-- Dynamic Branding -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-5 mb-10">
+                        @if($settings?->site_logo)
+                            <!-- Wrapped dark logo in a light container for visibility on dark background -->
+                            <div class="bg-white p-2.5 rounded-xl shadow-lg border border-gray-700">
+                                <img src="{{ Storage::url($settings->site_logo) }}" alt="Logo" class="h-20 w-auto">
                             </div>
-                            
-                            <div class="text-gray-400 mb-8 leading-relaxed max-w-sm text-lg prose prose-invert prose-sm">
-                                @if($settings?->footer_description)
-                                    {!! $settings->footer_description !!}
-                                @else
-                                    {{ $settings->site_description ?? 'Your all-in-one platform for powerful development tools and utilities.' }}
-                                @endif
+                        @else
+                            <div class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <span class="text-white font-black text-2xl">CT</span>
                             </div>
-
-                            <!-- Social Links from Settings (Updated with SVGs for visibility) -->
-                            <div class="flex space-x-5">
-                                @if($settings?->facebook_url)
-                                    <a href="{{ $settings->facebook_url }}" target="_blank" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-md">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                                    </a>
-                                @endif
-                                
-                                @if($settings?->twitter_url)
-                                    <a href="{{ $settings->twitter_url }}" target="_blank" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-700 hover:text-white transition-all transform hover:-translate-y-1 shadow-md">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.055-4.425 5.055H.316l5.733-6.57L0 .75h5.063l3.495 4.62L12.6.75zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633z"/></svg>
-                                    </a>
-                                @endif
-
-                                @if($settings?->linkedin_url)
-                                    <a href="{{ $settings->linkedin_url }}" target="_blank" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:bg-blue-700 hover:text-white transition-all transform hover:-translate-y-1 shadow-md">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Platform Links -->
-                        <div>
-                            <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Platform</h4>
-                            <ul class="space-y-4">
-                                <li><a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-blue-500 transition-colors flex items-center group"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Dashboard</a></li>
-                                <li><a href="{{ route('tools.index') }}" class="text-gray-400 hover:text-blue-500 transition-colors flex items-center group"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Browse Tools</a></li>
-                                <li><a href="{{ route('blog.index') }}" class="text-gray-400 hover:text-blue-500 transition-colors flex items-center group"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Technical Blog</a></li>
-                            </ul>
-                        </div>
-
-                        <!-- Support & Dynamic Pages -->
-                        <div>
-                            <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Support & Legal</h4>
-                            <ul class="space-y-4">
-                                
-
-                                @foreach($footerPages as $fPage)
-                                    <li>
-                                        <a href="{{ route('pages.show', $fPage->slug) }}" class="text-gray-400 hover:text-indigo-500 transition-colors flex items-center group">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                                            {{ $fPage->title }}
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
+                        @endif
+                        <h3 class="text-3xl font-black text-white tracking-tight">
+                            {{ $settings->site_name ?? config('app.name', 'CIP Tools') }}
+                        </h3>
+                    </div>
+                    
+                    <div class="text-gray-400 mb-10 leading-relaxed max-w-sm text-lg prose prose-invert prose-sm">
+                        @if($settings?->footer_description)
+                            {!! $settings->footer_description !!}
+                        @else
+                            {{ $settings->site_description ?? 'Professional SaaS platform delivering high-performance tools for modern business logic and secure data management.' }}
+                        @endif
                     </div>
 
-                    <!-- Bottom Bar -->
-                    <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center space-x-2 text-sm text-gray-500 font-medium">
-                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                            <span>&copy; {{ date('Y') }} {{ $settings->site_name ?? config('app.name') }}. All rights reserved.</span>
-                        </div>
+                    <!-- Dynamic Socials -->
+                    <div class="flex space-x-6">
+                        @if($settings?->facebook_url)
+                            <a href="{{ $settings->facebook_url }}" target="_blank" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </a>
+                        @endif
+                        @if($settings?->twitter_url)
+                            <a href="{{ $settings->twitter_url }}" target="_blank" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-700 hover:text-white transition-all transform hover:-translate-y-1">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.055-4.425 5.055H.316l5.733-6.57L0 .75h5.063l3.495 4.62L12.6.75zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633z"/></svg>
+                            </a>
+                        @endif
+                        @if($settings?->linkedin_url)
+                            <a href="{{ $settings->linkedin_url }}" target="_blank" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:bg-blue-700 hover:text-white transition-all transform hover:-translate-y-1">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
-                <!-- Animated Accent Line -->
-                <div class="h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-gradient"></div>
-            </footer>
+                <!-- Platform Section -->
+                <div>
+                    <h4 class="text-white font-black uppercase text-[10px] tracking-[0.3em] mb-10">Ecosystem</h4>
+                    <ul class="space-y-5 text-gray-400 font-bold text-sm">
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-blue-500 transition-all flex items-center group"><span class="w-1 h-1 bg-blue-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-all"></span>Dashboard</a></li>
+                        <li><a href="{{ route('tools.index') }}" class="hover:text-blue-500 transition-all flex items-center group"><span class="w-1 h-1 bg-blue-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-all"></span>Browse Tools</a></li>
+                        <li><a href="{{ route('blog.index') }}" class="hover:text-blue-500 transition-all flex items-center group"><span class="w-1 h-1 bg-blue-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-all"></span>Technical Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Dynamic Support Section -->
+                <div>
+                    <h4 class="text-white font-black uppercase text-[10px] tracking-[0.3em] mb-10">Support & Legal</h4>
+                    <ul class="space-y-5 text-gray-400 font-bold text-sm">
+                        <li><a href="#" class="hover:text-blue-500 transition-all flex items-center group"><span class="w-1 h-1 bg-blue-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-all"></span>Help Center</a></li>
+                        @foreach($footerPages as $fPage)
+                            <li>
+                                <a href="{{ route('pages.show', $fPage->slug) }}" class="hover:text-indigo-500 transition-all flex items-center group">
+                                    <span class="w-1 h-1 bg-indigo-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-all"></span>
+                                    {{ $fPage->title }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+                <p class="text-gray-500 font-bold text-sm">
+                    © {{ date('Y') }} {{ $settings->site_name ?? config('app.name') }}. Built with Excellence.
+                </p>
+            </div>
+        </div>
+        <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
