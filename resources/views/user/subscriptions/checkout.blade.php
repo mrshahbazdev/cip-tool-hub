@@ -25,7 +25,7 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
             <!-- Upgrade Alert -->
-            @if($hasActiveSubscription)
+            @if($hasActiveSubscription ?? false)
                 <div class="bg-indigo-50 border-2 border-indigo-100 rounded-[1.5rem] p-6 mb-10 shadow-sm flex items-start">
                     <div class="shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center mr-4">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -102,9 +102,9 @@
                                             name="subdomain" 
                                             id="subdomain"
                                             required
-                                            value="{{ old('subdomain', $suggestedSubdomain) }}"
-                                            {{ $isUpgrade ? 'readonly' : '' }}
-                                            class="w-full pl-6 pr-40 py-5 bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] focus:bg-white focus:ring-8 focus:ring-blue-500/5 focus:border-blue-600 text-gray-900 font-bold shadow-inner {{ $isUpgrade ? 'opacity-70 cursor-not-allowed' : '' }}"
+                                            value="{{ old('subdomain', $suggestedSubdomain ?? '') }}"
+                                            {{ ($isUpgrade ?? false) ? 'readonly' : '' }}
+                                            class="w-full pl-6 pr-40 py-5 bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] focus:bg-white focus:ring-8 focus:ring-blue-500/5 focus:border-blue-600 text-gray-900 font-bold shadow-inner {{ ($isUpgrade ?? false) ? 'opacity-70 cursor-not-allowed' : '' }}"
                                             placeholder="my-instance"
                                         >
                                         <div class="absolute right-4 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-400 font-black text-xs uppercase tracking-widest">
@@ -114,7 +114,7 @@
                                     
                                     <div class="mt-4 min-h-[24px]" id="availabilityStatus"></div>
 
-                                    @if($isUpgrade)
+                                    @if($isUpgrade ?? false)
                                         <p class="mt-4 p-3 bg-blue-50 rounded-xl text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                                             Locked: Upgrading current instance
@@ -199,7 +199,7 @@
     const form = document.getElementById('subscriptionForm');
     
     let checking = false;
-    let available = {{ $hasActiveSubscription ? 'true' : 'false' }};
+    let available = {{ ($hasActiveSubscription ?? false) ? 'true' : 'false' }};
     let debounceTimer = null;
     
     function showStatus(type, message) {
@@ -265,7 +265,7 @@
         }
     }
     
-    if (subdomainInput && !{{ $isUpgrade ? 'true' : 'false' }}) {
+    if (subdomainInput && !{{ ($isUpgrade ?? false) ? 'true' : 'false' }}) {
         subdomainInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(checkAvailability, 500);
@@ -278,6 +278,12 @@
         submitBtn.disabled = true;
     });
 
-    updateSubmitButton();
+    // Check availability on load if subdomain exists
+    if (subdomainInput && subdomainInput.value.length >= 3 && !{{ ($isUpgrade ?? false) ? 'true' : 'false' }}) {
+        checkAvailability();
+    } else if ({{ ($isUpgrade ?? false) ? 'true' : 'false' }}) {
+        available = true;
+        updateSubmitButton();
+    }
 })();
 </script>
