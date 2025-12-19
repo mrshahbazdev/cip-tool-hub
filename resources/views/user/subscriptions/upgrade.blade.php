@@ -27,7 +27,9 @@
             <div class="mb-12 bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
                 <div class="flex items-center gap-6">
                     <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                        <i class="fas fa-layer-group text-2xl"></i>
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Current Instance</p>
@@ -71,7 +73,18 @@
                         <div class="p-10 flex-1">
                             <div class="mb-6 flex justify-between items-start">
                                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                                    <i class="fas {{ $isLifetime ? 'fa-infinity' : 'fa-arrow-circle-up' }} text-xl"></i>
+                                    @if($isLifetime)
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5-4.5-2-4.5-4.5zm10.5 0c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5-4.5-2-4.5-4.5z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" class="opacity-0"/> <!-- Simple Infinity visualization -->
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" class="hidden" />
+                                            <path d="M16.5 10c2.485 0 4.5 2.015 4.5 4.5s-2.015 4.5-4.5 4.5c-1.47 0-2.77-.707-3.582-1.794L7.5 11.794C6.688 10.707 5.388 10 3.918 10 1.433 10-.582 12.015-.582 14.5S1.433 19 3.918 19c1.47 0 2.77-.707 3.582-1.794L16.5 10z" stroke="currentColor" stroke-width="2" fill="none" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
+                                        </svg>
+                                    @endif
                                 </div>
                                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">
                                     {{ $package->duration_type }}
@@ -108,14 +121,19 @@
                         <div class="px-10 pb-10 mt-auto">
                             <a href="{{ route('user.subscriptions.checkout', $package) }}" 
                                class="flex items-center justify-center w-full py-4.5 rounded-2xl font-black text-lg transition-all shadow-xl bg-gray-900 text-white hover:bg-blue-600 hover:-translate-y-1 shadow-gray-500/10 hover:shadow-blue-500/30">
-                                Confirm Upgrade <i class="fas fa-rocket ml-3 text-xs"></i>
+                                Confirm Upgrade 
+                                <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
                             </a>
                         </div>
                     </div>
                 @empty
                     <div class="col-span-full py-20 text-center">
                         <div class="bg-white/70 backdrop-blur-md rounded-[3rem] p-16 border-2 border-dashed border-blue-100">
-                            <i class="fas fa-box-open text-blue-200 text-5xl mb-6"></i>
+                            <svg class="w-16 h-16 text-blue-200 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
                             <h3 class="text-2xl font-black text-gray-400">No other plans available for upgrade at this time.</h3>
                         </div>
                     </div>
@@ -127,7 +145,9 @@
                 <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
                 <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
                     <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-300">
-                        <i class="fas fa-info-circle text-2xl"></i>
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
                     <div class="flex-1 text-center md:text-left">
                         <h4 class="text-white font-black text-xl mb-1">Smooth Transition Guarantee</h4>
