@@ -70,7 +70,7 @@
                     @if($settings?->site_logo)
                         <img src="{{ Storage::url($settings->site_logo) }}" 
                              alt="Logo" 
-                             class="h-12 w-auto object-contain transform group-hover:scale-105 transition duration-300">
+                             class="h-22 w-auto object-contain transform group-hover:scale-105 transition duration-300">
                     @else
                         <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition duration-300">
                             <span class="text-white font-extrabold text-xl">CT</span>
