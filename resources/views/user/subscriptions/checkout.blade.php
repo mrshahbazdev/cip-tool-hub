@@ -35,7 +35,7 @@
                         <p class="text-red-700 font-medium text-sm leading-relaxed">
                             {{ session('error') }}
                         </p>
-                        <p class="mt-2 text-[10px] text-red-400 font-bold uppercase">Transaction rolled back for safety</p>
+                        <p class="mt-2 text-[10px] text-red-400 font-bold uppercase tracking-tighter">The system prevented a duplicate entry conflict.</p>
                     </div>
                 </div>
             @endif
@@ -49,7 +49,7 @@
                     <div>
                         <h4 class="font-black text-indigo-900 uppercase tracking-widest text-xs mb-1">Upgrade Detection</h4>
                         <p class="text-indigo-700 font-medium text-sm leading-relaxed">
-                            You are upgrading your current instance of <strong>{{ $package->tool->name }}</strong>. Your data and subdomain will remain the same.
+                            You are upgrading your current instance of <strong>{{ $package->tool->name }}</strong>. Your data and subdomain <strong>({{ $suggestedSubdomain }})</strong> will be migrated to the new plan.
                         </p>
                     </div>
                 </div>
@@ -199,7 +199,7 @@
             const val = subdomainInput.value.trim().toLowerCase();
             if (val.length < 3) { available = false; updateSubmitButton(); return; }
             
-            statusDiv.innerHTML = '<span class="text-xs text-slate-400 animate-pulse">Syncing Availability...</span>';
+            statusDiv.innerHTML = '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Syncing Availability...</span>';
             
             const response = await fetch('/api/subdomain/check', {
                 method: 'POST',
@@ -208,7 +208,7 @@
             });
             const data = await response.json();
             available = data.available;
-            statusDiv.innerHTML = `<span class="text-xs font-bold ${available ? 'text-emerald-600' : 'text-red-600'} uppercase tracking-widest">${data.message}</span>`;
+            statusDiv.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${available ? 'text-emerald-600' : 'text-red-600'}">${data.message}</span>`;
             updateSubmitButton();
         });
     }
