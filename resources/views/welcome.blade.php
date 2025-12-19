@@ -315,9 +315,6 @@
                                 <span class="text-white font-black text-2xl">CT</span>
                             </div>
                         @endif
-                        <h3 class="text-3xl font-black text-white tracking-tight">
-                            {{ $settings->site_name ?? config('app.name', 'CIP Tools') }}
-                        </h3>
                     </div>
                     
                     <div class="text-gray-400 mb-10 leading-relaxed max-w-sm text-lg prose prose-invert prose-sm">
