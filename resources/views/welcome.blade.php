@@ -306,15 +306,12 @@
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center space-x-5 mb-10">
                         @if($settings?->site_logo)
-                            <img src="{{ Storage::url($settings->site_logo) }}" alt="Logo" class="h-12 w-auto rounded-lg">
+                            <img src="{{ Storage::url($settings->site_logo) }}" alt="Logo" class="h-22 w-auto rounded-lg">
                         @else
                             <div class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                                 <span class="text-white font-black text-2xl">CT</span>
                             </div>
                         @endif
-                        <h3 class="text-3xl font-black text-white tracking-tight">
-                            {{ $settings->site_name ?? config('app.name', 'CIP Tools') }}
-                        </h3>
                     </div>
                     
                     <div class="text-gray-400 mb-10 leading-relaxed max-w-sm text-lg prose prose-invert prose-sm">
@@ -376,9 +373,6 @@
                 <p class="text-gray-500 font-bold text-sm">
                     © {{ date('Y') }} {{ $settings->site_name ?? config('app.name') }}. Built with Excellence.
                 </p>
-                <div class="flex items-center text-gray-500 text-sm font-bold">
-                    Made with <i class="fas fa-heart text-red-500 mx-2 animate-pulse"></i> by the CIP Team
-                </div>
             </div>
         </div>
         <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
