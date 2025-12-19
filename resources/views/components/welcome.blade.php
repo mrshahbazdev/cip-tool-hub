@@ -1,159 +1,161 @@
-<div class="min-h-screen">
-    <!-- Hero Section -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 lg:py-24 rounded-3xl mb-12 border border-blue-50/50">
-        <!-- Decorative Elements -->
-        <div class="absolute top-0 right-0 -mt-16 -mr-16 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-80 h-80 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000 pointer-events-none"></div>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-extrabold text-2xl text-gray-900 tracking-tight leading-none">
+                        {{ __('User Workspace') }}
+                    </h2>
+                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mt-1.5">Command Center & Resource Overview</p>
+                </div>
+            </div>
+            
+            <div class="hidden sm:flex items-center px-5 py-2.5 bg-blue-50 border border-blue-100 rounded-2xl shadow-sm">
+                <span class="flex h-2 w-2 rounded-full bg-blue-600 mr-3 animate-pulse"></span>
+                <span class="text-xs font-black text-blue-700 uppercase tracking-widest">System Online</span>
+            </div>
+        </div>
+    </x-slot>
+
+    <div class="py-16 bg-slate-50/50 relative overflow-hidden min-h-screen">
+        <!-- Background Decor -->
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center">
-                <!-- Logo/Brand Badge -->
-                <div class="flex justify-center mb-8">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-2xl shadow-xl shadow-blue-500/20 transform hover:scale-105 transition-transform duration-300">
-                        <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                        </svg>
+            <!-- Welcome Hero -->
+            <div class="bg-white rounded-[3rem] shadow-[0_15px_50px_rgba(0,0,0,0.04)] p-10 md:p-16 border border-white mb-16 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none"></div>
+                
+                <div class="flex flex-col lg:flex-row gap-12 items-center lg:items-start relative z-10">
+                    <div class="shrink-0">
+                        <div class="w-32 h-32 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 text-center lg:text-left">
+                        <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+                            Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{{ Auth::user()->name }}</span>
+                        </h1>
+                        <p class="text-lg text-gray-500 font-medium leading-relaxed mb-10 max-w-2xl">
+                            Ready to accelerate your workflow? Manage your active tool licenses, track performance, and deploy new utilities from your dashboard.
+                        </p>
+                        <div class="flex flex-wrap justify-center lg:justify-start gap-4">
+                            <a href="{{ route('tools.index') }}" class="px-10 py-5 bg-gray-900 text-white rounded-[1.5rem] font-black text-lg hover:bg-blue-600 transition-all shadow-xl hover:-translate-y-1">
+                                Deploy New Tool
+                            </a>
+                            <a href="{{ route('user.subscriptions.index') }}" class="px-10 py-5 bg-white border-2 border-slate-100 text-slate-700 rounded-[1.5rem] font-black text-lg hover:bg-slate-50 transition-all shadow-sm">
+                                View Subscriptions
+                            </a>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Main Heading -->
-                <h1 class="text-5xl lg:text-7xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight">
-                    Welcome to <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-gradient-text">CIP Tools</span>
-                </h1>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                @php
+                    $activeCount = Auth::user()->subscriptions()->where('status', 'active')->count();
+                    $totalCount = Auth::user()->subscriptions()->count();
+                @endphp
                 
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
-                    Your all-in-one platform for powerful development tools and utilities. 
-                    Build faster, work smarter, and achieve more with our comprehensive toolkit.
-                </p>
-
-                <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <a href="/dashboard" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1 transition-all duration-200">
-                        Explore Dashboard
-                    </a>
-                    <a href="#features" class="px-10 py-4 bg-white/70 backdrop-blur-md text-gray-800 font-bold rounded-xl shadow-md hover:shadow-lg border border-gray-200 transform hover:-translate-y-1 transition-all duration-200">
-                        Learn More
-                    </a>
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-white hover:shadow-xl transition-all duration-300">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    </div>
+                    <p class="text-4xl font-black text-gray-900 mb-1">{{ $activeCount }}</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Licenses</p>
                 </div>
+
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-white hover:shadow-xl transition-all duration-300">
+                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    </div>
+                    <p class="text-4xl font-black text-gray-900 mb-1">{{ $totalCount }}</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Deployments</p>
+                </div>
+
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-white hover:shadow-xl transition-all duration-300">
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <p class="text-4xl font-black text-gray-900 mb-1">99.9%</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Uptime</p>
+                </div>
+
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-white hover:shadow-xl transition-all duration-300">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                    </div>
+                    <p class="text-4xl font-black text-gray-900 mb-1">Pro</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Account Tier</p>
+                </div>
+            </div>
+
+            <!-- Quick Access Section -->
+            <div class="flex items-center justify-between mb-10">
+                <h3 class="text-2xl font-black text-gray-900 flex items-center">
+                    <span class="w-10 h-1.5 bg-blue-600 mr-4 rounded-full"></span>
+                    Ready-to-Launch Utilities
+                </h3>
+                <a href="{{ route('user.subscriptions.index') }}" class="text-sm font-black text-blue-600 hover:text-indigo-700 uppercase tracking-widest transition-colors flex items-center">
+                    Manage All
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                @php
+                    $latestSubs = Auth::user()->subscriptions()->with('package.tool')->where('status', 'active')->latest()->take(3)->get();
+                @endphp
+
+                @forelse($latestSubs as $sub)
+                    <div class="group bg-white rounded-[2.5rem] shadow-sm border border-white p-8 hover:shadow-2xl transition-all duration-500 flex flex-col">
+                        <div class="flex items-center mb-8">
+                            <div class="w-14 h-14 bg-slate-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                @if($sub->package->tool->logo)
+                                    <img src="{{ Storage::url($sub->package->tool->logo) }}" class="h-8 w-8 object-contain group-hover:brightness-0 group-hover:invert" alt="">
+                                @else
+                                    <span class="text-xl font-black">{{ strtoupper(substr($sub->package->tool->name, 0, 1)) }}</span>
+                                @endif
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-black text-gray-900 group-hover:text-blue-600 transition-colors">{{ $sub->package->tool->name }}</h4>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $sub->package->name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-4 mb-8 border border-slate-100 flex items-center">
+                            <svg class="w-4 h-4 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                            <span class="text-xs font-mono text-slate-600 truncate">{{ $sub->subdomain }}.{{ $sub->package->tool->domain }}</span>
+                        </div>
+
+                        <a href="https://{{ $sub->subdomain }}.{{ $sub->package->tool->domain }}" target="_blank" class="w-full py-4 bg-gray-900 text-white rounded-xl font-black text-center group-hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/20">
+                            Launch Instance
+                        </a>
+                    </div>
+                @empty
+                    <div class="col-span-full">
+                        <div class="bg-white/50 rounded-[2.5rem] p-16 text-center border-2 border-dashed border-slate-200">
+                            <svg class="w-16 h-16 text-slate-200 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            <h4 class="text-2xl font-black text-slate-400 mb-2">No Active Licenses</h4>
+                            <p class="text-slate-400 font-medium mb-8">Deploy your first enterprise tool to populate your workspace.</p>
+                            <a href="{{ route('tools.index') }}" class="inline-flex items-center px-10 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition shadow-xl">
+                                Explore Toolset
+                            </a>
+                        </div>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
-
-    <!-- Features Grid -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-transparent" id="features">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Powerful Features</h2>
-            <p class="text-lg text-gray-500 font-medium">Everything you need to supercharge your development workflow</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Feature Card 1 -->
-            <div class="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-blue-200 relative overflow-hidden">
-                <div class="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-300">
-                    <svg class="w-7 h-7 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3 tracking-tight">Lightning Fast</h3>
-                <p class="text-gray-500 leading-relaxed font-medium">
-                    Experience blazing-fast performance with optimized tools designed for speed and production efficiency.
-                </p>
-            </div>
-
-            <!-- Feature Card 2 -->
-            <div class="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-indigo-200">
-                <div class="w-14 h-14 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition-colors duration-300">
-                    <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3 tracking-tight">Secure & Reliable</h3>
-                <p class="text-gray-500 leading-relaxed font-medium">
-                    Built with security in mind. Your workspace data is protected with industry-standard encryption protocols.
-                </p>
-            </div>
-
-            <!-- Feature Card 3 -->
-            <div class="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-purple-200">
-                <div class="w-14 h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-colors duration-300">
-                    <svg class="w-7 h-7 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3 tracking-tight">Customizable</h3>
-                <p class="text-gray-500 leading-relaxed font-medium">
-                    Tailor every aspect of your toolset to your specific project needs with flexible configuration options.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Section -->
-    <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 py-20 rounded-[3rem] shadow-2xl shadow-blue-500/10 mb-20 relative overflow-hidden">
-        <div class="absolute inset-0 bg-white/5 opacity-10 pointer-events-none"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
-                <div class="text-center">
-                    <div class="text-5xl font-extrabold text-white mb-2 tracking-tighter">50K+</div>
-                    <div class="text-blue-100 font-bold uppercase tracking-widest text-xs opacity-80">Active Users</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-extrabold text-white mb-2 tracking-tighter">100+</div>
-                    <div class="text-blue-100 font-bold uppercase tracking-widest text-xs opacity-80">Tools Pro</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-extrabold text-white mb-2 tracking-tighter">99.9%</div>
-                    <div class="text-blue-100 font-bold uppercase tracking-widest text-xs opacity-80">Uptime Rate</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-extrabold text-white mb-2 tracking-tighter">24/7</div>
-                    <div class="text-blue-100 font-bold uppercase tracking-widest text-xs opacity-80">Support live</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer CTA -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="bg-white rounded-[3rem] p-12 text-center border border-blue-50 shadow-xl shadow-blue-500/5 relative overflow-hidden">
-            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
-            <h2 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
-                Ready to elevate your project?
-            </h2>
-            <p class="text-xl text-gray-500 mb-10 max-w-2xl mx-auto font-medium">
-                Join thousands of professional developers who trust CIP Tools for their mission-critical workflows.
-            </p>
-            <a href="/register" class="inline-block px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-1 transition-all duration-300 text-lg">
-                Get Started for Free
-            </a>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Component Specific Animations */
-    @keyframes blob {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-    }
-    
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-
-    @keyframes gradientMove {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    .animate-gradient-text {
-        background-size: 200% auto;
-        animation: gradientMove 5s linear infinite;
-    }
-</style>
+</x-app-layout>
