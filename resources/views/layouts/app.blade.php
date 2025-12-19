@@ -175,12 +175,7 @@
                         <div>
                             <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Support & Legal</h4>
                             <ul class="space-y-4">
-                                <li>
-                                    <a href="#" class="text-gray-400 hover:text-indigo-500 transition-colors flex items-center group">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                                        Help Center
-                                    </a>
-                                </li>
+                                
 
                                 @foreach($footerPages as $fPage)
                                     <li>

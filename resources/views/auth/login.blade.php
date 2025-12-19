@@ -130,5 +130,5 @@
                 Secure enterprise-grade encryption enabled
             </p>
         </div>
-    </div>
+    </div>      
 </x-guest-layout>

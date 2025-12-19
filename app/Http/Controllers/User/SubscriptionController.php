@@ -12,16 +12,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Illuminate\Support\Arr;
 
 class SubscriptionController extends Controller
 {
     use AuthorizesRequests;
-    /**
-     * Show all user subscriptions
-     */
+
     public function index(): View
     {
         $subscriptions = auth()->user()
@@ -33,49 +31,75 @@ class SubscriptionController extends Controller
         return view('user.subscriptions.index', compact('subscriptions'));
     }
 
-    /**
-     * Show subscription checkout page
-     */
+    public function upgrade(Subscription $subscription): View
+    {
+        $this->authorize('view', $subscription);
+        
+        $tool = $subscription->package->tool->load('packages');
+        $packages = $tool->packages->where('status', true)->where('id', '!=', $subscription->package_id);
+
+        return view('user.subscriptions.upgrade', compact('subscription', 'tool', 'packages'));
+    }
+
     public function checkout(Package $package): View
     {
         if (!$package->status) {
-            abort(404, 'Package not found or inactive');
+            abort(404);
         }
 
+        $user = auth()->user();
         $package->load('tool');
 
-        // Check if user already has active subscription for this tool
-        $hasActiveSubscription = auth()->user()
-            ->activeSubscriptions()
-            ->whereHas('package', function ($query) use ($package) {
-                $query->where('tool_id', $package->tool_id);
-            })
-            ->exists();
+        if ($package->price == 0) {
+            $hasUsedFreeBefore = $user->subscriptions()
+                ->whereHas('package', function ($query) use ($package) {
+                    $query->where('tool_id', $package->tool_id)
+                          ->where('price', 0);
+                })->exists();
 
-        // Get existing subdomain if user has one
-        $existingSubscription = auth()->user()
-            ->subscriptions()
+            if ($hasUsedFreeBefore) {
+                return redirect()->route('tools.show', $package->tool)
+                    ->with('error', 'You have already used the free plan for this tool. Please choose a premium plan.');
+            }
+        }
+
+        $existingSubscription = $user->subscriptions()
             ->whereHas('package', function ($query) use ($package) {
                 $query->where('tool_id', $package->tool_id);
             })
+            ->whereIn('status', ['active', 'pending'])
             ->latest()
             ->first();
 
+        $isUpgrade = $existingSubscription !== null;
         $suggestedSubdomain = $existingSubscription?->subdomain ?? 
-                             Str::slug(auth()->user()->name) . random_int(100, 999);
+                             Str::slug($user->name) . random_int(100, 999);
 
         return view('user.subscriptions.checkout', compact(
             'package', 
-            'hasActiveSubscription',
-            'suggestedSubdomain'
+            'isUpgrade',
+            'suggestedSubdomain',
+            'existingSubscription'
         ));
     }
 
-    /**
-     * Process subscription
-     */
     public function subscribe(Request $request, Package $package): RedirectResponse
     {
+        $user = auth()->user();
+
+        if ($package->price == 0) {
+            $hasUsedFreeBefore = $user->subscriptions()
+                ->whereHas('package', function ($query) use ($package) {
+                    $query->where('tool_id', $package->tool_id)
+                          ->where('price', 0);
+                })->exists();
+
+            if ($hasUsedFreeBefore) {
+                return redirect()->route('tools.show', $package->tool)
+                    ->with('error', 'Unauthorized: Free plans are limited to one per user.');
+            }
+        }
+
         $request->validate([
             'subdomain' => [
                 'required', 
@@ -91,31 +115,29 @@ class SubscriptionController extends Controller
         try {
             DB::beginTransaction();
 
-            $user = auth()->user();
             $subdomain = strtolower($request->subdomain);
 
-            // Check if subdomain already exists for this tool
-            $subdomainExists = Subscription::where('subdomain', $subdomain)
+            $oldSubscription = $user->subscriptions()
                 ->whereHas('package', function ($query) use ($package) {
                     $query->where('tool_id', $package->tool_id);
                 })
+                ->where('status', 'active')
+                ->first();
+
+            $subdomainTakenByOther = Subscription::where('subdomain', $subdomain)
+                ->whereHas('package', function ($query) use ($package) {
+                    $query->where('tool_id', $package->tool_id);
+                })
+                ->where('user_id', '!=', $user->id)
                 ->exists();
 
-            if ($subdomainExists) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'This subdomain is already taken. Please choose another one.');
+            if ($subdomainTakenByOther) {
+                return back()->withInput()->with('error', 'This subdomain is already taken.');
             }
 
-            // Calculate expiry date
             $expiresAt = $this->calculateExpiryDate($package);
+            $paymentStatus = ($package->price == 0 || $request->payment_method === 'free') ? 'completed' : 'pending';
 
-            // Determine payment status
-            $paymentStatus = ($package->price == 0 || $request->payment_method === 'free') 
-                ? 'completed' 
-                : 'pending';
-
-            // Create transaction
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'package_id' => $package->id,
@@ -124,15 +146,9 @@ class SubscriptionController extends Controller
                 'amount' => $package->price,
                 'currency' => 'EUR',
                 'status' => $paymentStatus,
-                'metadata' => [
-                    'subdomain' => $subdomain,
-                    'package_name' => $package->name,
-                    'tool_name' => $package->tool->name,
-                    'user_email' => $user->email,
-                ],
+                'metadata' => ['subdomain' => $subdomain, 'upgrade' => $oldSubscription ? true : false],
             ]);
 
-            // Create subscription
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'package_id' => $package->id,
@@ -144,62 +160,19 @@ class SubscriptionController extends Controller
                 'admin_email' => $user->email,
             ]);
 
-            Log::info('Subscription created', [
-                'subscription_id' => $subscription->id,
-                'user_id' => $user->id,
-                'subdomain' => $subdomain,
-                'payment_status' => $paymentStatus,
-            ]);
+            if ($oldSubscription && $paymentStatus === 'completed') {
+                $oldSubscription->update(['status' => 'upgraded']);
+            }
 
-            // Auto-activate for free packages
             if ($paymentStatus === 'completed') {
-                try {
-                    Log::info('Creating tenant for free subscription', [
-                        'subscription_id' => $subscription->id,
-                        'subdomain' => $subdomain,
-                    ]);
-                    
-                    // Create tenant - THIS SHOULD UPDATE THE SUBSCRIPTION!
-                    $tenantData = $this->createTenantOnToolServer($subscription);
-                    
-                    // Refresh subscription to get updated data
-                    $subscription->refresh();
-                    
-                    DB::commit();
-                    
-                    Log::info('Tenant created and subscription updated', [
-                        'subscription_id' => $subscription->id,
-                        'tenant_id' => $subscription->tenant_id,
-                        'is_tenant_active' => $subscription->is_tenant_active,
-                    ]);
-                    
-                    return redirect()
-                        ->route('user.subscriptions.success', $subscription)
-                        ->with('success', 'Subscription activated successfully! You can now login to your tenant.')
-                        ->with('tenant_credentials', $tenantData);
-                        
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    
-                    Log::error('Tenant creation failed during subscription', [
-                        'subscription_id' => $subscription->id ?? null,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                    
-                    return back()
-                        ->withInput()
-                        ->with('error', 'Failed to create tenant: ' . $e->getMessage() . ' Please contact support.');
-                }
+                $tenantData = $this->createTenantOnToolServer($subscription);
+                DB::commit();
+                return redirect()->route('user.subscriptions.success', $subscription)
+                    ->with('success', 'Plan upgraded successfully!')
+                    ->with('tenant_credentials', $tenantData);
             }
 
             DB::commit();
-
-            // Redirect to payment for paid packages
-            Log::info('Redirecting to payment', [
-                'subscription_id' => $subscription->id,
-                'payment_method' => $request->payment_method,
-            ]);
 
             return match($request->payment_method) {
                 'stripe' => redirect()->route('user.subscriptions.payment.stripe', $subscription),
@@ -210,35 +183,30 @@ class SubscriptionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
-            Log::error('Subscription creation failed', [
-                'user_id' => auth()->id(),
-                'package_id' => $package->id,
-                'subdomain' => $subdomain ?? null,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to create subscription: ' . $e->getMessage());
+            Log::error('Subscription Error: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Operation failed: ' . $e->getMessage());
         }
     }
-    /**
-     * Create tenant on tool server via API
-     */
+
+    private function calculateExpiryDate(Package $package)
+    {
+        if ($package->duration_type === 'lifetime') return null;
+        $starts = now();
+        return match($package->duration_type) {
+            'trial', 'days' => $starts->copy()->addDays($package->duration_value),
+            'months' => $starts->copy()->addMonths($package->duration_value),
+            'years' => $starts->copy()->addYears($package->duration_value),
+            default => $starts->copy()->addDays(30),
+        };
+    }
+
     private function createTenantOnToolServer(Subscription $subscription): array
     {
         $tool = $subscription->package->tool;
         $user = $subscription->user;
 
-        if (!$tool->is_connected) {
-            $tool->checkConnection();
-        }
-
-        if (!$tool->is_connected) {
-            throw new \Exception('Tool server is not available');
-        }
+        if (!$tool->is_connected) { $tool->checkConnection(); }
+        if (!$tool->is_connected) { throw new \Exception('Tool server is not available'); }
 
         $tenantId = 'tenant_' . Str::uuid();
         $hashedPassword = $user->password;
@@ -256,11 +224,6 @@ class SubscriptionController extends Controller
             'expires_at' => $subscription->expires_at?->toIso8601String(),
         ];
 
-        Log::info('Sending tenant creation request', [
-            'tenant_id' => $tenantId,
-            'subdomain' => $subscription->subdomain,
-        ]);
-
         $response = Http::timeout(30)
             ->withHeaders([
                 'Authorization' => 'Bearer ' . $tool->api_token,
@@ -270,44 +233,23 @@ class SubscriptionController extends Controller
             ->post($tool->api_url . '/api/tenants/create', $requestData);
 
         if (!$response->successful()) {
-            Log::error('Tenant API failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
             throw new \Exception('API failed: ' . $response->body());
         }
 
         $responseData = $response->json();
-
         if (!($responseData['success'] ?? false)) {
             throw new \Exception($responseData['message'] ?? 'Unknown error');
         }
 
-        // ⚠️ THIS IS CRITICAL - UPDATE SUBSCRIPTION
-        $updated = $subscription->update([
+        $subscription->update([
             'tenant_id' => $tenantId,
             'is_tenant_active' => true,
             'tenant_created_at' => now(),
             'tenant_metadata' => $responseData,
         ]);
 
-        if (!$updated) {
-            Log::error('Failed to update subscription with tenant info', [
-                'subscription_id' => $subscription->id,
-                'tenant_id' => $tenantId,
-            ]);
-            throw new \Exception('Failed to update subscription in database');
-        }
-
-        Log::info('Subscription successfully updated', [
-            'subscription_id' => $subscription->id,
-            'tenant_id' => $tenantId,
-            'is_tenant_active' => $subscription->is_tenant_active,
-        ]);
-
         $baseDomain = config('app.base_domain', 'ideenpipeline.de');
-        $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
-                '/tenant/' . $tenantId . '/login';
+        $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . '/tenant/' . $tenantId . '/login';
 
         return [
             'tenant_id' => $tenantId,
@@ -315,241 +257,106 @@ class SubscriptionController extends Controller
             'subdomain' => $subscription->subdomain,
             'domain' => $subscription->subdomain . '.' . $baseDomain,
             'admin_email' => $user->email,
-            'message' => 'Use same email and password as your main account',
             'success' => true,
         ];
     }
 
-    /**
-     * Sync existing subscription to create tenant
-     */
     public function syncTenant(Request $request, Subscription $subscription): RedirectResponse
     {
-        if ($subscription->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized access');
-        }
-
+        $this->authorize('update', $subscription);
         if ($subscription->tenant_id && $subscription->is_tenant_active) {
-            return back()->with('info', 'Tenant already exists and is active.');
+            return back()->with('info', 'Tenant already exists.');
         }
 
-        // Validate password input
-        $request->validate([
-            'password' => ['required', 'string', 'min:8'],
-        ]);
+        $request->validate(['password' => ['required', 'string', 'min:8']]);
 
         try {
             DB::beginTransaction();
-
-            // Get password from request (user must provide it)
-            $plainPassword = $request->password;
-            
-            // Verify password matches user's current password
-            if (!Hash::check($plainPassword, auth()->user()->password)) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'The provided password does not match your current password.');
+            if (!Hash::check($request->password, auth()->user()->password)) {
+                return back()->with('error', 'Incorrect password.');
             }
 
-            // Create tenant with user's actual password
-            $tenantData = $this->createTenantOnToolServer($subscription, $plainPassword);
-
+            $tenantData = $this->createTenantOnToolServer($subscription);
             DB::commit();
 
-            Log::info('Tenant synced for existing subscription', [
-                'subscription_id' => $subscription->id,
-                'tenant_id' => $tenantData['tenant_id'],
-                'user_id' => auth()->id(),
-            ]);
-
-            return redirect()
-                ->route('user.subscriptions.show', $subscription)
-                ->with('success', 'Tenant created successfully! You can now login with your current password.')
+            return redirect()->route('user.subscriptions.show', $subscription)
+                ->with('success', 'Tenant synchronized!')
                 ->with('tenant_credentials', $tenantData);
-
         } catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('Tenant sync failed', [
-                'subscription_id' => $subscription->id,
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Failed to create tenant: ' . $e->getMessage());
+            return back()->with('error', 'Sync failed: ' . $e->getMessage());
         }
     }
 
-        /**
-
-    /**
-     * Calculate expiry date based on package duration
-     */
-    private function calculateExpiryDate(Package $package)
-    {
-        if ($package->duration_type === 'lifetime') {
-            return null;
-        }
-
-        $starts = now();
-        
-        return match($package->duration_type) {
-            'trial', 'days' => $starts->copy()->addDays($package->duration_value),
-            'months' => $starts->copy()->addMonths($package->duration_value),
-            'years' => $starts->copy()->addYears($package->duration_value),
-            default => $starts->copy()->addDays(30),
-        };
-    }
-
-    /**
-     * Show payment page
-     */
     public function payment(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
         if ($subscription->status === 'active') {
             return redirect()->route('user.subscriptions.success', $subscription);
         }
-
         $subscription->load(['package.tool', 'transaction']);
-
         return view('user.subscriptions.payment', compact('subscription'));
     }
 
-    /**
-     * Show Stripe payment page
-     */
     public function paymentStripe(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
-        if ($subscription->status === 'active') {
-            return redirect()->route('user.subscriptions.success', $subscription);
-        }
-
         $subscription->load(['package.tool', 'transaction']);
-
         return view('user.subscriptions.payment-stripe', compact('subscription'));
     }
 
-    /**
-     * Show PayPal payment page
-     */
     public function paymentPaypal(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
-        if ($subscription->status === 'active') {
-            return redirect()->route('user.subscriptions.success', $subscription);
-        }
-
         $subscription->load(['package.tool', 'transaction']);
-
         return view('user.subscriptions.payment-paypal', compact('subscription'));
     }
 
-    /**
-     * Show bank transfer instructions
-     */
     public function paymentBank(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
         $subscription->load(['package.tool', 'transaction']);
-
         return view('user.subscriptions.payment-bank', compact('subscription'));
     }
-    
-    /**
-     * Show subscription success page
-     */
+
     public function success(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
         $subscription->load(['package.tool', 'transaction']);
-
-        // Get tenant credentials from session if available
         $tenantCredentials = session('tenant_credentials');
-
-        // Build login URL from subscription
         $loginUrl = null;
         if ($subscription->tenant_id) {
             $baseDomain = config('app.base_domain', 'ideenpipeline.de');
-            $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
-                       '/tenant/' . $subscription->tenant_id . '/login';
+            $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . '/tenant/' . $subscription->tenant_id . '/login';
         }
-
-        return view('user.subscriptions.success', compact(
-            'subscription', 
-            'tenantCredentials',
-            'loginUrl'
-        ));
+        return view('user.subscriptions.success', compact('subscription', 'tenantCredentials', 'loginUrl'));
     }
 
-    /**
-     * Show single subscription details
-     */
     public function show(Subscription $subscription): View
     {
         $this->authorize('view', $subscription);
-
         $subscription->load(['package.tool', 'transaction']);
-
-        // Build tenant login URL if active
         $loginUrl = null;
         if ($subscription->tenant_id && $subscription->is_tenant_active) {
             $baseDomain = config('app.base_domain', 'ideenpipeline.de');
-            $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . 
-                       '/tenant/' . $subscription->tenant_id . '/login';
+            $loginUrl = 'https://' . $subscription->subdomain . '.' . $baseDomain . '/tenant/' . $subscription->tenant_id . '/login';
         }
-
         return view('user.subscriptions.show', compact('subscription', 'loginUrl'));
     }
 
-    /**
-     * Cancel subscription
-     */
     public function cancel(Request $request, Subscription $subscription): RedirectResponse
     {
         $this->authorize('update', $subscription);
-
         try {
-            $subscription->update([
-                'status' => 'cancelled',
-                'is_tenant_active' => false,
-            ]);
-
-            // Notify tool server to deactivate tenant
+            $subscription->update(['status' => 'cancelled', 'is_tenant_active' => false]);
             if ($subscription->tenant_id) {
                 $tool = $subscription->package->tool;
-                
-                try {
-                    Http::timeout(10)
-                        ->withHeaders(['Authorization' => 'Bearer ' . $tool->api_token])
-                        ->post($tool->api_url . '/api/tenants/' . $subscription->tenant_id . '/update-status', [
-                            'status' => 'inactive',
-                        ]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to deactivate tenant on tool server', [
-                        'tenant_id' => $subscription->tenant_id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+                Http::timeout(10)->withHeaders(['Authorization' => 'Bearer ' . $tool->api_token])
+                    ->post($tool->api_url . '/api/tenants/' . $subscription->tenant_id . '/update-status', ['status' => 'inactive']);
             }
-
-            return redirect()
-                ->route('user.subscriptions.index')
-                ->with('success', 'Subscription cancelled successfully');
-
+            return redirect()->route('user.subscriptions.index')->with('success', 'Subscription cancelled.');
         } catch (\Exception $e) {
-            Log::error('Subscription cancellation failed', [
-                'subscription_id' => $subscription->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Failed to cancel subscription');
+            return back()->with('error', 'Cancellation failed.');
         }
     }
 }

@@ -53,6 +53,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session')])->group(fun
         Route::post('/subscribe/{package}', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
         Route::get('/subscription/{subscription}/payment', [SubscriptionController::class, 'payment'])->name('subscriptions.payment');
         Route::get('/subscription/{subscription}/success', [SubscriptionController::class, 'success'])->name('subscriptions.success');
+        Route::get('/subscription/{subscription}/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscriptions.upgrade');
     });
 
     /**
