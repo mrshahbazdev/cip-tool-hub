@@ -83,15 +83,18 @@ class SubscriptionController extends Controller
         ));
     }
 
+    /**
+     * Handle Subscription and Upgrade with Unique Subdomain Fix.
+     */
     public function subscribe(Request $request, Package $package): RedirectResponse
     {
         $user = auth()->user();
 
+        // 1. Free Plan Limit Check
         if ($package->price == 0) {
             $hasUsedFreeBefore = $user->subscriptions()
                 ->whereHas('package', function ($query) use ($package) {
-                    $query->where('tool_id', $package->tool_id)
-                          ->where('price', 0);
+                    $query->where('tool_id', $package->tool_id)->where('price', 0);
                 })->exists();
 
             if ($hasUsedFreeBefore) {
@@ -100,6 +103,7 @@ class SubscriptionController extends Controller
             }
         }
 
+        // 2. Validation
         $request->validate([
             'subdomain' => [
                 'required', 
@@ -117,27 +121,37 @@ class SubscriptionController extends Controller
 
             $subdomain = strtolower($request->subdomain);
 
+            // 3. Purani active subscription dhundhein (Upgrade detection)
             $oldSubscription = $user->subscriptions()
                 ->whereHas('package', function ($query) use ($package) {
                     $query->where('tool_id', $package->tool_id);
                 })
-                ->where('status', 'active')
+                ->whereIn('status', ['active', 'pending'])
                 ->first();
 
+            // 4. Subdomain Availability Check (excluding current user's own subscription)
             $subdomainTakenByOther = Subscription::where('subdomain', $subdomain)
-                ->whereHas('package', function ($query) use ($package) {
-                    $query->where('tool_id', $package->tool_id);
-                })
                 ->where('user_id', '!=', $user->id)
                 ->exists();
 
             if ($subdomainTakenByOther) {
-                return back()->withInput()->with('error', 'This subdomain is already taken.');
+                return back()->withInput()->with('error', 'This subdomain is already taken by another user.');
+            }
+
+            // 5. CRITICAL FIX: SQL Duplicate Entry Error Solution
+            // Agar upgrade ho raha hai aur subdomain wahi hai, toh purane record ka subdomain rename karein
+            // taake unique index conflict na ho aur wahi name naye record ke liye free ho jaye.
+            if ($oldSubscription && $oldSubscription->subdomain === $subdomain) {
+                $oldSubscription->update([
+                    'subdomain' => $subdomain . '_upgraded_' . now()->timestamp,
+                    'status' => 'upgraded' 
+                ]);
             }
 
             $expiresAt = $this->calculateExpiryDate($package);
             $paymentStatus = ($package->price == 0 || $request->payment_method === 'free') ? 'completed' : 'pending';
 
+            // 6. Create Transaction record
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'package_id' => $package->id,
@@ -146,9 +160,14 @@ class SubscriptionController extends Controller
                 'amount' => $package->price,
                 'currency' => 'EUR',
                 'status' => $paymentStatus,
-                'metadata' => ['subdomain' => $subdomain, 'upgrade' => $oldSubscription ? true : false],
+                'metadata' => [
+                    'subdomain' => $subdomain, 
+                    'upgrade' => $oldSubscription ? true : false,
+                    'previous_sub_id' => $oldSubscription?->id
+                ],
             ]);
 
+            // 7. Create New Subscription
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'package_id' => $package->id,
@@ -160,20 +179,19 @@ class SubscriptionController extends Controller
                 'admin_email' => $user->email,
             ]);
 
-            if ($oldSubscription && $paymentStatus === 'completed') {
-                $oldSubscription->update(['status' => 'upgraded']);
-            }
-
+            // 8. Auto-provisioning if payment is already completed (Free plans)
             if ($paymentStatus === 'completed') {
-                $tenantData = $this->createTenantOnToolServer($subscription);
+                // Humne assume kiya hai ke aapka tenant creation helper available hai
+                $this->createTenantOnToolServer($subscription);
                 DB::commit();
+                
                 return redirect()->route('user.subscriptions.success', $subscription)
-                    ->with('success', 'Plan upgraded successfully!')
-                    ->with('tenant_credentials', $tenantData);
+                    ->with('success', 'Infrastructure updated and plan upgraded successfully!');
             }
 
             DB::commit();
 
+            // 9. Redirect to Payment Gateways
             return match($request->payment_method) {
                 'stripe' => redirect()->route('user.subscriptions.payment.stripe', $subscription),
                 'paypal' => redirect()->route('user.subscriptions.payment.paypal', $subscription),
@@ -183,11 +201,14 @@ class SubscriptionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Subscription Error: ' . $e->getMessage());
+            Log::error('Upgrade Error: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Operation failed: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Helper to calculate expiry based on package duration.
+     */
     private function calculateExpiryDate(Package $package)
     {
         if ($package->duration_type === 'lifetime') return null;
