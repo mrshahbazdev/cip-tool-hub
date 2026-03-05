@@ -24,7 +24,8 @@ class SubscriptionForm
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
-                            ->required()
+                            ->nullable()
+                            ->helperText('Leave empty for external tool subscriptions')
                             ->columnSpan(1),
 
                         Select::make('package_id')
@@ -32,7 +33,8 @@ class SubscriptionForm
                             ->relationship('package', 'name')
                             ->searchable()
                             ->preload()
-                            ->required()
+                            ->nullable()
+                            ->helperText('Leave empty for external tool subscriptions')
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
