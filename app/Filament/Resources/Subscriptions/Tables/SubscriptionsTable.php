@@ -218,7 +218,11 @@ class SubscriptionsTable
                     }),
 
                 ViewAction::make(),
-                EditAction::make(),
+                Action::make('edit')
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil')
+                    ->color('gray')
+                    ->url(fn(Subscription $record): string => \App\Filament\Resources\Subscriptions\SubscriptionResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make(),
             ])
             ->headerActions([
