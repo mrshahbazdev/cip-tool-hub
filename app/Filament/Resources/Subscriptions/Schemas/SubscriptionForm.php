@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Subscriptions\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -41,16 +41,16 @@ class SubscriptionForm
                                         // Auto-calculate expiry date
                                         $starts = now();
                                         $expires = null;
-                                        
+
                                         if ($package->duration_type !== 'lifetime') {
-                                            $expires = match($package->duration_type) {
+                                            $expires = match ($package->duration_type) {
                                                 'trial', 'days' => $starts->copy()->addDays($package->duration_value),
                                                 'months' => $starts->copy()->addMonths($package->duration_value),
                                                 'years' => $starts->copy()->addYears($package->duration_value),
                                                 default => $starts->copy()->addDays(30),
                                             };
                                         }
-                                        
+
                                         $set('starts_at', $starts);
                                         $set('expires_at', $expires);
                                     }
