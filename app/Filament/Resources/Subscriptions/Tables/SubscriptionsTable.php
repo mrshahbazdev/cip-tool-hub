@@ -18,6 +18,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Artisan;
 
@@ -139,7 +141,7 @@ class SubscriptionsTable
                     ->visible(fn(Subscription $record): bool => $record->status === 'pending')
                     ->requiresConfirmation()
                     ->modalHeading('Approve Subscription')
-                    ->modalDescription(fn(Subscription $record) => "Approve subscription for {$record->user->name}?")
+                    ->modalDescription(fn(Subscription $record) => "Approve subscription for " . ($record->user?->name ?? $record->admin_email) . "?")
                     ->modalSubmitActionLabel('Yes, Approve')
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'active']);
@@ -148,9 +150,11 @@ class SubscriptionsTable
                             $record->transaction->update(['status' => 'completed']);
                         }
 
+                        static::pushStatusToTool($record, 'active');
+
                         Notification::make()
                             ->title('Subscription Approved!')
-                            ->body("Subscription for {$record->user->name} has been activated.")
+                            ->body("Subscription activated successfully.")
                             ->success()
                             ->send();
                     }),
@@ -164,6 +168,8 @@ class SubscriptionsTable
                     ->requiresConfirmation()
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'active']);
+
+                        static::pushStatusToTool($record, 'active');
 
                         Notification::make()
                             ->title('Subscription Activated!')
@@ -183,6 +189,8 @@ class SubscriptionsTable
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'expired']);
 
+                        static::pushStatusToTool($record, 'inactive');
+
                         Notification::make()
                             ->title('Subscription Deactivated!')
                             ->success()
@@ -200,6 +208,8 @@ class SubscriptionsTable
                     ->modalDescription('This will cancel the subscription permanently.')
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'cancelled']);
+
+                        static::pushStatusToTool($record, 'suspended');
 
                         Notification::make()
                             ->title('Subscription Cancelled!')
@@ -320,5 +330,39 @@ class SubscriptionsTable
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100]);
+    }
+
+    /**
+     * Push a status change to the external tool's API
+     */
+    protected static function pushStatusToTool(Subscription $record, string $toolStatus): void
+    {
+        if (!$record->external_subscription_id || !$record->tool) {
+            return;
+        }
+
+        $tool = $record->tool;
+
+        if (!$tool->api_url || !$tool->api_token) {
+            return;
+        }
+
+        try {
+            Http::timeout(10)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $tool->api_token,
+                    'Accept' => 'application/json',
+                ])
+                ->post(
+                    $tool->api_url . '/api/tenants/' . $record->external_subscription_id . '/update-status',
+                    ['status' => $toolStatus]
+                );
+        } catch (\Exception $e) {
+            Log::error('Failed to push subscription status to tool', [
+                'tool' => $tool->name,
+                'subscription_id' => $record->external_subscription_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
