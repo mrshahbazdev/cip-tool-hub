@@ -43,16 +43,17 @@ class SyncToolSubscriptions extends Command
 
             foreach ($subscriptions as $data) {
                 try {
+                    // Look up by subdomain first — it may already exist as a Hub subscription
                     Subscription::updateOrCreate(
                         [
-                            'external_subscription_id' => $data['tenant_id'],
-                            'tool_id' => $tool->id,
+                            'subdomain' => $data['subdomain'] ?? $data['tenant_id'],
                         ],
                         [
+                            'tool_id' => $tool->id,
                             'is_external' => true,
+                            'external_subscription_id' => $data['tenant_id'],
                             'external_user_id' => $data['platform_user_id'] ?? null,
                             'external_package_name' => $data['package_name'] ?? null,
-                            'subdomain' => $data['subdomain'] ?? $data['tenant_id'],
                             'admin_email' => $data['admin_email'] ?? null,
                             'status' => $this->mapStatus($data['status'] ?? 'inactive'),
                             'starts_at' => $data['starts_at'] ?? now(),
