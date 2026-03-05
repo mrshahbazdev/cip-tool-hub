@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Subscriptions\Tables;
 
+use App\Console\Commands\SyncToolSubscriptions;
 use App\Models\Subscription;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -12,10 +13,13 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Artisan;
 
 class SubscriptionsTable
 {
@@ -28,34 +32,47 @@ class SubscriptionsTable
                     ->sortable()
                     ->searchable(),
 
+                IconColumn::make('is_external')
+                    ->label('Source')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-arrow-down-tray')
+                    ->falseIcon('heroicon-o-home')
+                    ->trueColor('warning')
+                    ->falseColor('success')
+                    ->tooltip(fn(Subscription $record) => $record->is_external ? 'External (Tool)' : 'Hub'),
+
                 TextColumn::make('user.name')
                     ->label('User')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->default(fn(Subscription $record) => $record->admin_email ?? '—')
+                    ->description(fn(Subscription $record) => $record->is_external ? '[External]' : null),
 
                 TextColumn::make('package.tool.name')
                     ->label('Tool')
                     ->searchable()
                     ->sortable()
                     ->badge()
-                    ->color('primary'),
+                    ->color('primary')
+                    ->default(fn(Subscription $record) => $record->tool?->name ?? '—'),
 
                 TextColumn::make('package.name')
                     ->label('Package')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->default(fn(Subscription $record) => $record->external_package_name ?? '—'),
 
                 TextColumn::make('subdomain')
                     ->label('Domain')
                     ->searchable()
-                    ->formatStateUsing(fn (Subscription $record) => $record->full_domain)
+                    ->formatStateUsing(fn(Subscription $record) => $record->full_domain)
                     ->copyable()
                     ->copyMessage('Domain copied to clipboard!')
                     ->tooltip('Click to copy'),
 
                 TextColumn::make('package.price')
                     ->label('Amount')
-                    ->formatStateUsing(fn ($state) => '€' . number_format($state, 2))
+                    ->formatStateUsing(fn($state) => '€' . number_format($state, 2))
                     ->sortable(),
 
                 BadgeColumn::make('status')
@@ -106,6 +123,12 @@ class SubscriptionsTable
                     ->searchable()
                     ->preload()
                     ->multiple(),
+
+                TernaryFilter::make('is_external')
+                    ->label('Source')
+                    ->trueLabel('External (Tool)')
+                    ->falseLabel('Hub Only')
+                    ->placeholder('All Subscriptions'),
             ])
             ->recordActions([
                 // Approve (Green Check) - Only for Pending
@@ -113,18 +136,18 @@ class SubscriptionsTable
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Subscription $record): bool => $record->status === 'pending')
+                    ->visible(fn(Subscription $record): bool => $record->status === 'pending')
                     ->requiresConfirmation()
                     ->modalHeading('Approve Subscription')
-                    ->modalDescription(fn (Subscription $record) => "Approve subscription for {$record->user->name}?")
+                    ->modalDescription(fn(Subscription $record) => "Approve subscription for {$record->user->name}?")
                     ->modalSubmitActionLabel('Yes, Approve')
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'active']);
-                        
+
                         if ($record->transaction) {
                             $record->transaction->update(['status' => 'completed']);
                         }
-                        
+
                         Notification::make()
                             ->title('Subscription Approved!')
                             ->body("Subscription for {$record->user->name} has been activated.")
@@ -137,11 +160,11 @@ class SubscriptionsTable
                     ->label('Activate')
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
-                    ->visible(fn (Subscription $record): bool => in_array($record->status, ['expired', 'cancelled']))
+                    ->visible(fn(Subscription $record): bool => in_array($record->status, ['expired', 'cancelled']))
                     ->requiresConfirmation()
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'active']);
-                        
+
                         Notification::make()
                             ->title('Subscription Activated!')
                             ->success()
@@ -153,13 +176,13 @@ class SubscriptionsTable
                     ->label('Deactivate')
                     ->icon('heroicon-o-pause')
                     ->color('warning')
-                    ->visible(fn (Subscription $record): bool => $record->status === 'active')
+                    ->visible(fn(Subscription $record): bool => $record->status === 'active')
                     ->requiresConfirmation()
                     ->modalHeading('Deactivate Subscription')
                     ->modalDescription('Mark this subscription as expired.')
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'expired']);
-                        
+
                         Notification::make()
                             ->title('Subscription Deactivated!')
                             ->success()
@@ -171,13 +194,13 @@ class SubscriptionsTable
                     ->label('Cancel')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->visible(fn (Subscription $record): bool => $record->status !== 'cancelled')
+                    ->visible(fn(Subscription $record): bool => $record->status !== 'cancelled')
                     ->requiresConfirmation()
                     ->modalHeading('Cancel Subscription')
                     ->modalDescription('This will cancel the subscription permanently.')
                     ->action(function (Subscription $record) {
                         $record->update(['status' => 'cancelled']);
-                        
+
                         Notification::make()
                             ->title('Subscription Cancelled!')
                             ->success()
@@ -188,6 +211,24 @@ class SubscriptionsTable
                 EditAction::make(),
                 DeleteAction::make(),
             ])
+            ->headerActions([
+                Action::make('sync_subscriptions')
+                    ->label('Sync Tool Subscriptions')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Sync Tool Subscriptions')
+                    ->modalDescription('This will fetch the latest subscriptions from all connected tools and update the list.')
+                    ->modalSubmitActionLabel('Yes, Sync Now')
+                    ->action(function () {
+                        Artisan::call(SyncToolSubscriptions::class);
+                        Notification::make()
+                            ->title('Subscriptions Synced!')
+                            ->body('Tool subscriptions have been successfully synced.')
+                            ->success()
+                            ->send();
+                    }),
+            ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     // Bulk Approve
@@ -197,22 +238,22 @@ class SubscriptionsTable
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('Approve Selected Subscriptions')
-                        ->modalDescription(fn (Collection $records) => "Approve {$records->count()} subscription(s)?")
+                        ->modalDescription(fn(Collection $records) => "Approve {$records->count()} subscription(s)?")
                         ->action(function (Collection $records) {
                             $approved = 0;
-                            
+
                             $records->each(function (Subscription $record) use (&$approved) {
                                 if ($record->status === 'pending') {
                                     $record->update(['status' => 'active']);
-                                    
+
                                     if ($record->transaction) {
                                         $record->transaction->update(['status' => 'completed']);
                                     }
-                                    
+
                                     $approved++;
                                 }
                             });
-                            
+
                             Notification::make()
                                 ->title("Approved {$approved} subscription(s)!")
                                 ->success()
@@ -229,7 +270,7 @@ class SubscriptionsTable
                         ->action(function (Collection $records) {
                             $count = $records->count();
                             $records->each->update(['status' => 'active']);
-                            
+
                             Notification::make()
                                 ->title("Activated {$count} subscription(s)!")
                                 ->success()
@@ -246,7 +287,7 @@ class SubscriptionsTable
                         ->action(function (Collection $records) {
                             $count = $records->count();
                             $records->each->update(['status' => 'expired']);
-                            
+
                             Notification::make()
                                 ->title("Deactivated {$count} subscription(s)!")
                                 ->success()
@@ -265,7 +306,7 @@ class SubscriptionsTable
                         ->action(function (Collection $records) {
                             $count = $records->count();
                             $records->each->update(['status' => 'cancelled']);
-                            
+
                             Notification::make()
                                 ->title("Cancelled {$count} subscription(s)!")
                                 ->success()

@@ -18,11 +18,19 @@ class Subscription extends Model
         'starts_at',
         'expires_at',
         'status',
+        // External tool subscription fields
+        'tool_id',
+        'is_external',
+        'external_subscription_id',
+        'external_user_id',
+        'external_package_name',
+        'admin_email',
     ];
 
     protected $casts = [
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
+        'is_external' => 'boolean',
     ];
 
     /**
@@ -33,7 +41,11 @@ class Subscription extends Model
         if ($this->package && $this->package->tool) {
             return $this->subdomain . '.' . $this->package->tool->domain;
         }
-        
+
+        if ($this->tool) {
+            return $this->subdomain . '.' . $this->tool->domain;
+        }
+
         return $this->subdomain;
     }
 
@@ -62,12 +74,20 @@ class Subscription extends Model
     }
 
     /**
+     * Subscription belongs to a tool (for external subscriptions)
+     */
+    public function tool(): BelongsTo
+    {
+        return $this->belongsTo(Tool::class);
+    }
+
+    /**
      * Check if subscription is active
      */
     public function isActive(): bool
     {
-        return $this->status === 'active' && 
-               ($this->expires_at === null || $this->expires_at > now());
+        return $this->status === 'active' &&
+            ($this->expires_at === null || $this->expires_at > now());
     }
 
     /**

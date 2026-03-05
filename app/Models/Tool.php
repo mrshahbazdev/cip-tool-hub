@@ -151,4 +151,31 @@ class Tool extends Model
 
         return $response->successful();
     }
+
+    /**
+     * Fetch all subscriptions from tool's API
+     */
+    public function fetchSubscriptions(): array
+    {
+        if (!$this->api_url || !$this->is_connected) {
+            return [];
+        }
+
+        try {
+            $response = Http::timeout(15)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $this->api_token,
+                    'Accept' => 'application/json',
+                ])
+                ->get($this->api_url . '/api/tenants/subscriptions');
+
+            if ($response->successful()) {
+                return $response->json('data', []);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
 }
